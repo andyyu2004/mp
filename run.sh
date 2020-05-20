@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function cleanup() {
-    rm -f /tmp/mp.sock
+    rm -f /tmp/mp-server
 }
 
 cleanup

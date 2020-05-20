@@ -20,8 +20,6 @@ fn main() -> io::Result<()> {
 
         let mut stream = UnixStream::connect(format!("{}-stream", addr.display()))?;
 
-        println!("socket {:?} sent {:?}", addr, &buf[..count]);
-
         for i in 0..5 {
             stream.write_all(&[i])?;
         }
