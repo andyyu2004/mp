@@ -6,18 +6,21 @@ use std::os::unix::net::{UnixDatagram, UnixStream};
 // mpris-listen
 
 fn main() -> io::Result<()> {
-    let path = "/tmp/mp.sock";
+    let path = "/tmp/mp-server";
     let socket = UnixDatagram::bind(path)?;
 
     loop {
         let mut buf = [0; 100];
-        let (count, address) = socket.recv_from(&mut buf)?;
-        println!("server recv {:?} from {:?}", &buf[..count], address);
+        let (count, addr) = socket.recv_from(&mut buf)?;
 
-        socket.send_to(b"received", address.as_pathname().unwrap())?;
+        let addr = addr.as_pathname().unwrap();
+        println!("server recv {:?} from {}", &buf[..count], addr.display());
 
-        let mut stream = UnixStream::connect("/tmp/mpstream.sock")?;
-        // println!("socket {:?} sent {:?}", address, &buf[..count]);
+        socket.send_to(b"received", addr)?;
+
+        let mut stream = UnixStream::connect(format!("{}-stream", addr.display()))?;
+
+        println!("socket {:?} sent {:?}", addr, &buf[..count]);
 
         for i in 0..5 {
             stream.write_all(&[i])?;
