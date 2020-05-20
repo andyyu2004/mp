@@ -14,4 +14,4 @@ fi
 
 trap cleanup INT
 
-cargo r --release
+cargo r --release -- $@

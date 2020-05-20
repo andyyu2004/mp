@@ -1,0 +1,14 @@
+name: mpclient
+args:
+    - files:
+        long: addfiles
+        help: Add files to music library
+        takes_value: true
+        value_name: files..
+        multiple: true
+    - folders:
+        long: addfolders
+        help: Add folders to music library
+        takes_value: true
+        value_name: folders..
+        multiple: true
