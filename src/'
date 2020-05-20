@@ -1,0 +1,24 @@
+use std::io;
+use std::os::unix::net::{UnixDatagram, UnixListener};
+
+fn main() -> io::Result<()> {
+    let path = "/tmp/mpclient.sock";
+    let socket = UnixDatagram::bind(path)?;
+    if let Err(err) = socket.connect("/tmp/mp.sock") {
+        println!("Couldn't connect: {:?}", err);
+        return Err(err);
+    }
+
+    let listener = UnixListener::bind("/tmp/mpstream.sock");
+    for stream in listener.incoming() {
+        thread::spawn(|| handle_client(stream?))
+    }
+
+    socket.send(b"yeet")?;
+    let mut buf = [0; 100];
+    let count = socket.recv(&mut buf)?;
+    println!("{:?}", &buf[..count]);
+    std::fs::remove_file(path)?;
+
+    Ok(())
+}
