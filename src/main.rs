@@ -5,7 +5,7 @@ use std::os::unix::net::{UnixDatagram, UnixListener, UnixStream};
 use std::thread;
 
 fn main() -> io::Result<()> {
-    let path = "/tmp/mpclient";
+    let path = "/tmp/mp-client";
     let socket = UnixDatagram::bind(path)?;
     socket.connect("/tmp/mp-server")?;
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 function cleanup() {
-    rm -f /tmp/mpclient.sock
-    rm -f /tmp/mpstream.sock
+    rm -f /tmp/mp-client
+    rm -f /tmp/mp-client-stream
 }
 
 cleanup
