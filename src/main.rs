@@ -5,11 +5,11 @@ use std::os::unix::net::{UnixDatagram, UnixListener, UnixStream};
 use std::thread;
 
 fn main() -> io::Result<()> {
-    let path = "/tmp/mpclient.sock";
+    let path = "/tmp/mpclient";
     let socket = UnixDatagram::bind(path)?;
-    socket.connect("/tmp/mp.sock")?;
+    socket.connect("/tmp/mp-server")?;
 
-    let stream_path = "/tmp/mpstream.sock";
+    let stream_path = format!("{}-stream", path);
     let listener = UnixListener::bind(stream_path)?;
     let stream_handler = thread::spawn(|| handle_streams(listener));
 
