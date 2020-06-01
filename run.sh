@@ -7,7 +7,7 @@ function cleanup() {
 
 cleanup
 
-cargo b
+cargo b --release
 if [[ $? -ne 0 ]]; then
     exit 1
 fi

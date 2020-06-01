@@ -3,20 +3,23 @@ mod connection;
 mod protocol;
 
 use connection::Connection;
+use mp_protocol::ProtocolResult;
 use std::io;
 use std::io::prelude::*;
 use std::os::unix::net::{UnixDatagram, UnixListener, UnixStream};
 
-fn main() -> io::Result<()> {
+fn main() -> ProtocolResult<()> {
+    let matches = cli::get_args();
+
     let socket = UnixDatagram::bind("/tmp/mp-client")?;
     socket.connect("/tmp/mp-server")?;
     let mut connection = Connection::new(socket);
 
-    let matches = cli::get_args();
-    if let Some(files) = matches.values_of("files") {
-        let files: Vec<&str> = files.collect();
+    if let Some(matches) = matches.subcommand_matches("add") {
+        let files: Vec<&str> = matches.values_of("FILES").unwrap().collect();
         connection.add_files(files)?;
     }
+
     Ok(())
 }
 

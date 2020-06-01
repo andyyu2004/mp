@@ -12,3 +12,12 @@ args:
         takes_value: true
         value_name: folders..
         multiple: true
+subcommands:
+  - add:
+      about: add music to library
+      args:
+        - FILES:
+            about: directories and files to add to library
+            required: true
+            index: 1
+            multiple: true
