@@ -10,4 +10,4 @@ edition = "2018"
 # mp-protocol = { git = "ssh://git@gitlab.com/andyyu2004/mp-protocol.git" }
 mp-protocol = { path = "../mp-protocol" }
 clap = {version = "3.0.0-beta.1", features = ["yaml"]}
-async-std ={ version = "1.6.0", features = ["attributes"] }
+tokio = { version = "0.2", features = ["full"] }

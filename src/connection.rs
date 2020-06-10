@@ -1,24 +1,24 @@
-use async_std::os::unix::net::UnixDatagram;
-use async_std::path::Path;
 use std::io;
+use std::path::Path;
+use tokio::net::UnixDatagram;
 
 pub(crate) struct Connection {
     socket: UnixDatagram,
 }
 
 impl Connection {
-    pub async fn new(path: impl AsRef<Path>) -> io::Result<Self> {
-        let socket = UnixDatagram::bind(path).await?;
-        socket.connect("/tmp/mp-server").await?;
+    pub fn new(path: impl AsRef<Path>) -> io::Result<Self> {
+        let socket = UnixDatagram::bind(path)?;
+        socket.connect("/tmp/mp-server")?;
         Ok(Self { socket })
     }
 
-    pub async fn send(&self, bytes: &[u8]) -> io::Result<()> {
+    pub async fn send(&mut self, bytes: &[u8]) -> io::Result<()> {
         self.socket.send(bytes).await?;
         Ok(())
     }
 
-    pub async fn recv(&self, buf: &mut [u8]) -> io::Result<usize> {
+    pub async fn recv(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.socket.recv(buf).await
     }
 }
