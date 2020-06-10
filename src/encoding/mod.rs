@@ -1,14 +1,23 @@
 mod binary_encoder;
-mod encodable;
+mod encode;
 mod encoder;
 
 pub use binary_encoder::BinaryEncoder;
-pub use encodable::Encodable;
+pub use encode::Encode;
 pub use encoder::Encoder;
 
 use crate::{error::ParseError, ProtocolResult};
 use num_enum::TryFromPrimitive;
-use std::convert::TryFrom;
+use std::{convert::TryFrom, io::Write};
+
+pub fn binary_encode_to_bytes<T>(item: &T, writer: impl Write) -> ProtocolResult<usize>
+where
+    T: Encode,
+{
+    let mut encoder = BinaryEncoder::new(writer);
+    item.encode(&mut encoder)?;
+    Ok(encoder.get_byte_count())
+}
 
 /// Represents the encoding used in the binary stream sent to the server
 #[repr(u8)]

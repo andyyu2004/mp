@@ -13,10 +13,10 @@ pub struct DeserializationError;
 impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
-            Self::InvalidOpcode(opcode) => write!(f, "Invalid opcode {} at index 0", opcode),
             Self::InvalidEncoding(encoding) => {
-                write!(f, "Invalid encoding {} at index 1", encoding)
+                write!(f, "Invalid encoding `{}` at index 0", encoding)
             }
+            Self::InvalidOpcode(opcode) => write!(f, "Invalid opcode `{}` at index 1", opcode),
         }
     }
 }

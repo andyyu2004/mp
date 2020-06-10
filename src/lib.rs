@@ -14,3 +14,4 @@ pub use encoding::*;
 pub use error::{ProtocolError, ProtocolResult};
 pub use opcode::Opcode;
 pub use request::*;
+pub use response::*;
