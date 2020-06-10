@@ -1,29 +1,17 @@
-use std::io;
-use std::io::prelude::*;
-use std::os::unix::net::{UnixDatagram, UnixStream};
+mod data;
+mod files;
+mod server;
 
 // mpris
 // mpris-listen
 
-fn main() -> io::Result<()> {
+use server::Server;
+use std::io;
+
+#[tokio::main]
+async fn main() -> io::Result<()> {
     let path = "/tmp/mp-server";
-    let socket = UnixDatagram::bind(path)?;
-
-    loop {
-        let mut buf = [0; 100];
-        let (count, addr) = socket.recv_from(&mut buf)?;
-
-        let addr = addr.as_pathname().unwrap();
-        println!("server recv {:?} from {}", &buf[..count], addr.display());
-
-        socket.send_to(b"received", addr)?;
-
-        let mut stream = UnixStream::connect(format!("{}-stream", addr.display()))?;
-
-        for i in 0..5 {
-            stream.write_all(&[i])?;
-        }
-    }
-
-    // std::fs::remove_file(path)
+    let mut server = Server::new(path)?;
+    server.start().await;
+    Ok(())
 }
