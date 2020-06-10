@@ -16,19 +16,3 @@ impl Decoder for BinaryDecoder {
         Opcode::from_u8(u)
     }
 }
-
-#[cfg(test)]
-mod test {
-    use crate::protocol::*;
-
-    #[test]
-    fn parse_add_file() -> crate::ProtocolResult<()> {
-        let paths = vec!["/music/a", "music/b"];
-        let mut buf = [0u8; 1024];
-        let count = gen::add_file(&paths, &mut buf)?;
-        let rd = parse::parse_request(&buf[..count])?;
-        // assert_eq!(rd, Request::AddFile(paths));
-
-        Ok(())
-    }
-}
