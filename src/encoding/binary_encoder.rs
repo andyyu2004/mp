@@ -19,9 +19,9 @@ impl BinaryEncoder {
 impl Encoder for BinaryEncoder {
     type Error = ProtocolError;
 
-    fn encode_add_file<'a>(
+    fn encode_add_file(
         &self,
-        paths: impl IntoIterator<Item = &'a str>,
+        paths: impl IntoIterator<Item = impl AsRef<Path>>,
         buf: &mut [u8],
     ) -> ProtocolResult<usize> {
         buf[0] = Encoding::Binary as u8;
