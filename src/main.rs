@@ -13,9 +13,9 @@ extern crate serde;
 // mpris
 // mpris-listen
 
-use db::{Database, InsertableArtist};
+use db::Database;
 use error::*;
-use mp_server::MpServer;
+
 use server::Server;
 use std::io;
 

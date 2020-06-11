@@ -1,6 +1,7 @@
-use super::{Album, Artist, Entry, InsertableAlbum, InsertableArtist, InsertableTrack, Track};
+use super::*;
 use crate::{Database, ServerResult};
 use diesel::prelude::*;
+use diesel::query_dsl::InternalJoinDsl;
 use diesel::OptionalExtension;
 use std::path::PathBuf;
 
@@ -8,24 +9,52 @@ use std::path::PathBuf;
 pub trait Mpdb {}
 
 impl Database {
+    pub fn get_all(&self) -> ServerResult<()> {
+        use super::schema::albums::columns::album_id;
+        use super::schema::artists::columns::artist_id;
+        use super::schema::{albums::dsl::*, artists::dsl::*, tracks::dsl::*};
+
+        let q = albums.inner_join(tracks).inner_join(artists).select((
+            track_id,
+            title,
+            lyrics,
+            comments,
+            genre,
+            track_number,
+            path,
+            duration,
+            bitrate,
+            samplerate,
+            channels,
+            album_id,
+            album_title,
+            year,
+            total_tracks,
+            artist_id,
+            artist_name,
+        ));
+
+        let joined_tracks = q.load::<JoinedTrack>(&self.connection)?;
+        dbg!(joined_tracks);
+
+        Ok(())
+    }
+
     pub fn insert_files(
         &mut self,
         data: &Vec<(PathBuf, id3::Tag, taglib::File)>,
     ) -> ServerResult<()> {
         for (path, tag, file) in data {
-            let entry = Entry::from((path.as_path(), tag, file.audioproperties()?));
-            let Entry {
+            let entry = InsertionEntry::from((path.as_path(), tag, file.audioproperties()?));
+            let InsertionEntry {
                 artist,
                 album,
                 track,
             } = entry;
 
             let artist = self.get_or_insert_artist(artist)?;
-            dbg!(&artist);
             let album = self.get_or_insert_album(album, artist.artist_id)?;
-            dbg!(&album);
-            let track = self.get_or_insert_track(track, album.album_id)?;
-            dbg!(&track);
+            let _track = self.get_or_insert_track(track, album.album_id)?;
         }
 
         Ok(())

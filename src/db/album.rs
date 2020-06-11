@@ -1,6 +1,7 @@
 use super::schema::albums;
 
-#[derive(Deserialize, Debug, Queryable)]
+#[derive(Identifiable, Deserialize, Debug, Queryable)]
+#[primary_key(album_id)]
 pub struct Album {
     pub album_id: i32,
     pub album_title: String,

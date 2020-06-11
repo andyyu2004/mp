@@ -7,13 +7,13 @@ const UNKNOWN_ARTIST: &str = "unknown artist";
 const UNKNOWN_GENRE: &str = "unknown genre";
 
 /// wrapper for artist, album, track
-pub(crate) struct Entry<'a> {
+pub(crate) struct InsertionEntry<'a> {
     pub track: InsertableTrack<'a>,
     pub album: InsertableAlbum<'a>,
     pub artist: InsertableArtist<'a>,
 }
 
-impl<'a> From<(&'a Path, &'a id3::Tag, taglib::AudioProperties<'a>)> for Entry<'a> {
+impl<'a> From<(&'a Path, &'a id3::Tag, taglib::AudioProperties<'a>)> for InsertionEntry<'a> {
     fn from(
         (path, tag, properties): (&'a Path, &'a id3::Tag, taglib::AudioProperties<'a>),
     ) -> Self {
@@ -31,7 +31,7 @@ impl<'a> From<(&'a Path, &'a id3::Tag, taglib::AudioProperties<'a>)> for Entry<'
         let track_number = tag.track().map(|i| i as i32);
         let year = tag.year().map(|i| i as i32);
         let total_tracks = tag.total_tracks().map(|i| i as i32);
-        let pictures: Vec<_> = tag.pictures().collect();
+        let _pictures: Vec<_> = tag.pictures().collect();
 
         let artist = InsertableArtist { artist_name };
 

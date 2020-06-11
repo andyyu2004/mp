@@ -1,7 +1,8 @@
 use super::schema::tracks;
 use diesel::{Insertable, Queryable};
 
-#[derive(Debug, Queryable, Deserialize)]
+#[derive(Identifiable, Debug, Queryable, Deserialize)]
+#[primary_key(track_id)]
 pub struct Track {
     pub track_id: i32,
     pub title: String,

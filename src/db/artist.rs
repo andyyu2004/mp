@@ -1,6 +1,7 @@
 use super::schema::artists;
 
-#[derive(Queryable, Debug, Deserialize)]
+#[derive(Identifiable, Queryable, Debug, Deserialize)]
+#[primary_key(artist_id)]
 pub struct Artist {
     pub artist_id: i32,
     pub artist_name: String,

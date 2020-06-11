@@ -1,6 +1,7 @@
 mod album;
 mod artist;
 mod entry;
+mod joined_track;
 mod mpdb;
 mod schema;
 mod track;
@@ -8,11 +9,11 @@ mod track;
 use diesel::prelude::*;
 use dotenv::dotenv;
 
-use crate::ServerResult;
 pub use album::*;
 pub use artist::*;
 use entry::*;
-use std::path::{Path, PathBuf};
+pub use joined_track::JoinedTrack;
+
 pub use track::*;
 
 pub struct Database {
