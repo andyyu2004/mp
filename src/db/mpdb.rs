@@ -1,15 +1,15 @@
 use super::*;
 use crate::{Database, ServerResult};
 use diesel::prelude::*;
-use diesel::query_dsl::InternalJoinDsl;
 use diesel::OptionalExtension;
+use mp_protocol::JoinedTrack;
 use std::path::PathBuf;
 
 /// music player database
 pub trait Mpdb {}
 
 impl Database {
-    pub fn get_all(&self) -> ServerResult<()> {
+    pub fn get_all(&self) -> ServerResult<Vec<JoinedTrack>> {
         use super::schema::albums::columns::album_id;
         use super::schema::artists::columns::artist_id;
         use super::schema::{albums::dsl::*, artists::dsl::*, tracks::dsl::*};
@@ -34,10 +34,8 @@ impl Database {
             artist_name,
         ));
 
-        let joined_tracks = q.load::<JoinedTrack>(&self.connection)?;
-        dbg!(joined_tracks);
-
-        Ok(())
+        let joined_tracks = q.load(&self.connection)?;
+        Ok(joined_tracks)
     }
 
     pub fn insert_files(
@@ -120,7 +118,6 @@ impl Database {
             .limit(1);
 
         let artist = query.get_result::<Artist>(&self.connection).optional()?;
-        dbg!(&artist);
 
         Ok(match artist {
             Some(artist) => artist,

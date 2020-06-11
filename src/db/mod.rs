@@ -1,7 +1,6 @@
 mod album;
 mod artist;
 mod entry;
-mod joined_track;
 mod mpdb;
 mod schema;
 mod track;
@@ -12,7 +11,6 @@ use dotenv::dotenv;
 pub use album::*;
 pub use artist::*;
 use entry::*;
-pub use joined_track::JoinedTrack;
 
 pub use track::*;
 

@@ -19,26 +19,30 @@ impl<'a> Server<'a> {
     }
 
     async fn listen(&mut self) -> ServerResult<()> {
-        let mut buf = [0; BUF_CAP];
+        let mut buf = vec![0; BUF_CAP];
         let (count, addr) = self.socket.recv_from(&mut buf).await?;
         let addr = addr.as_pathname().unwrap();
 
         let req = Request::try_from(&buf[..count])?;
 
-        let res = self.handle_request(req).await?;
-        dbg!(res);
-
-        self.socket.send_to(b"00", addr).await?;
-
+        let res = self.handle_request(req).await;
+        let bytes = serde_json::to_vec(&res).unwrap();
+        self.socket.send_to(&bytes, addr).await?;
         Ok(())
     }
 
-    pub async fn handle_request(&mut self, req: Request<'_>) -> ServerResult<Response> {
-        match req {
-            Request::AddFile(paths) => self.add_files(&paths)?,
+    pub async fn handle_request(&mut self, req: Request<'_>) -> Response {
+        let res = match req {
+            Request::AddFile(paths) => self.handle_add_files(&paths),
         };
 
-        Ok(Response)
+        match res {
+            Ok(res) => res,
+            Err(err) => {
+                println!("handle response error: {}", err);
+                Response::Error
+            }
+        }
     }
 
     pub async fn start(&mut self) -> ! {

@@ -10,10 +10,11 @@ pub(crate) trait MpServer {
 }
 
 impl Server<'_> {
-    pub(crate) fn add_files(&mut self, paths: &Vec<&Path>) -> ServerResult<Response> {
+    pub(crate) fn handle_add_files(&mut self, paths: &Vec<&Path>) -> ServerResult<Response> {
         let tags = self.get_all_tags(paths)?;
         self.db.insert_files(&tags)?;
-        Ok(Response)
+        let joined_tracks = self.db.get_all()?;
+        Ok(Response::Tracks(joined_tracks))
     }
 
     pub(crate) fn get_all_tags(
