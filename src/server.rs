@@ -1,26 +1,26 @@
-use crate::files;
-use mp_protocol::{ProtocolResult, BUF_CAP};
-use mp_protocol::{Request, Response};
+use crate::Database;
+use crate::ServerResult;
+use mp_protocol::{Request, Response, BUF_CAP};
 use std::convert::TryFrom;
 use std::io;
 use tokio::net::UnixDatagram;
 
-pub(crate) struct Server {
+pub(crate) struct Server<'a> {
     socket: UnixDatagram,
+    pub(crate) db: &'a mut Database,
 }
 
-impl Server {
-    pub fn new(path: &str) -> io::Result<Self> {
+impl<'a> Server<'a> {
+    pub fn new(path: &str, db: &'a mut Database) -> io::Result<Self> {
         Ok(Self {
             socket: UnixDatagram::bind(path)?,
+            db,
         })
     }
 
-    async fn listen(&mut self) -> ProtocolResult<()> {
+    async fn listen(&mut self) -> ServerResult<()> {
         let mut buf = [0; BUF_CAP];
         let (count, addr) = self.socket.recv_from(&mut buf).await?;
-        println!("recv");
-
         let addr = addr.as_pathname().unwrap();
 
         let req = Request::try_from(&buf[..count])?;
@@ -33,9 +33,9 @@ impl Server {
         Ok(())
     }
 
-    pub async fn handle_request(&mut self, req: Request<'_>) -> ProtocolResult<Response> {
+    pub async fn handle_request(&mut self, req: Request<'_>) -> ServerResult<Response> {
         match req {
-            Request::AddFile(paths) => files::add_files(&paths)?,
+            Request::AddFile(paths) => self.add_files(&paths)?,
         };
 
         Ok(Response)
@@ -44,7 +44,7 @@ impl Server {
     pub async fn start(&mut self) -> ! {
         loop {
             if let Err(err) = self.listen().await {
-                println!("err: {}", err)
+                println!("err: {:?}", err)
             }
         }
 

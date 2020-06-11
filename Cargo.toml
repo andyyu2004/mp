@@ -10,7 +10,9 @@ edition = "2018"
 rodio = "0.11"
 # mp-protocol = { git = "ssh://git@gitlab.com/andyyu2004/mp-protocol.git" }
 mp-protocol = { path = "../mp-protocol" }
-diesel = { version = "1.0.0", features = ["postgres"] }
-dotenv = "0.9.0"
+diesel = { version = "1.0.0", features = ["sqlite"] }
+serde = { version = "1", features = ["derive"] }
+dotenv = "0.15.0"
+taglib = "1"
 tokio = { version = "0.2", features = ["full", "uds"] }
 id3 = "0.5.1"
