@@ -1,13 +1,20 @@
 mod cli;
 mod connection;
+mod error;
 mod protocol;
+mod ui;
 
 use connection::Connection;
-use mp_protocol::ProtocolResult;
+use error::*;
+use log::LevelFilter;
 use std::path::Path;
+use ui::*;
+
+#[macro_use]
+extern crate log;
 
 #[tokio::main]
-async fn main() -> ProtocolResult<()> {
+async fn main() -> ClientResult<()> {
     let matches = cli::get_args();
 
     let mut connection = Connection::new("/tmp/mp-client")?;
@@ -17,6 +24,11 @@ async fn main() -> ProtocolResult<()> {
         connection
             .add_files(files.into_iter().map(Path::new).collect())
             .await?;
+    } else {
+        // if no arguments were provided, start the ui
+        simple_logging::log_to_file("log.log", LevelFilter::Trace)?;
+        let mut ui = UI::new();
+        ui.start()?;
     }
 
     Ok(())
