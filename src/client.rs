@@ -1,5 +1,8 @@
-use crate::{error::ClientResult, Connection};
+use crate::ui::handlers;
+use crate::ui::Key;
+use crate::{error::ClientResult, ui::UI, Connection};
 use mp_protocol::JoinedTrack;
+use std::{borrow::Borrow, collections::HashMap, hash::Hash};
 
 #[derive(Debug)]
 pub struct ClientState {
@@ -12,15 +15,48 @@ impl Default for ClientState {
     }
 }
 
+// can store this in json  later, map to function_name (str) instead.
+// then have another map from strings to functions
+//
+pub(crate) type Handler = for<'r, 'b> fn(&'r mut UI<'b>);
+pub(crate) struct KeyMap(HashMap<Key, Handler>);
+
+impl KeyMap {
+    pub fn get<Q>(&self, k: &Q) -> Option<Handler>
+    where
+        Key: Borrow<Q>,
+        Q: Hash + Eq + ?Sized,
+    {
+        self.0.get(k).map(|f| *f)
+    }
+}
+
+impl Default for KeyMap {
+    fn default() -> Self {
+        let map = hashmap! {
+            Key::Char('k') => handlers::track_list_prev as Handler,
+            Key::Char('j') => handlers::track_list_next as Handler
+        };
+        Self(map)
+    }
+}
+
+#[derive(Default)]
+pub(crate) struct UserConfig {
+    pub keymap: KeyMap,
+}
+
 pub(crate) struct Client<'a> {
     pub state: ClientState,
     pub connection: &'a mut Connection,
+    pub user_config: UserConfig,
 }
 
 impl<'a> Client<'a> {
     pub fn new(connection: &'a mut Connection) -> Self {
         Self {
             connection,
+            user_config: UserConfig::default(),
             state: ClientState::default(),
         }
     }

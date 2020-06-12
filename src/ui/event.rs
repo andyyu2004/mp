@@ -1,4 +1,5 @@
-use crossterm::event::{Event, KeyEvent};
+use super::key::Key;
+use crossterm::event::Event;
 use std::io;
 use std::{sync::mpsc, thread, time::Duration};
 
@@ -9,8 +10,8 @@ pub(crate) enum InputEvent<T> {
     Tick,
 }
 pub(crate) struct EventHandler {
-    rx: mpsc::Receiver<InputEvent<KeyEvent>>,
-    _tx: mpsc::Sender<InputEvent<KeyEvent>>,
+    rx: mpsc::Receiver<InputEvent<Key>>,
+    _tx: mpsc::Sender<InputEvent<Key>>,
 }
 
 impl EventHandler {
@@ -20,7 +21,8 @@ impl EventHandler {
         let duration = Duration::from_millis(TICK_RATE);
         thread::spawn::<_, io::Result<()>>(move || loop {
             if crossterm::event::poll(duration).unwrap() {
-                if let Event::Key(key) = crossterm::event::read().unwrap() {
+                if let Event::Key(key_event) = crossterm::event::read().unwrap() {
+                    let key = Key::from(key_event);
                     event_tx.send(InputEvent::Input(key)).unwrap();
                 }
             }
@@ -30,7 +32,7 @@ impl EventHandler {
         Self { _tx: tx, rx }
     }
 
-    pub fn recv(&self) -> Result<InputEvent<KeyEvent>, mpsc::RecvError> {
+    pub fn recv(&self) -> Result<InputEvent<Key>, mpsc::RecvError> {
         self.rx.recv()
     }
 }

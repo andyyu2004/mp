@@ -1,11 +1,16 @@
 mod components;
 mod event;
+pub(crate) mod handlers;
+mod key;
+mod region;
 mod render;
 mod uistate;
 
 use crate::{Client, ClientResult};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use event::{EventHandler, InputEvent};
+pub(crate) use key::Key;
+use region::Region;
 use render::Render;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -37,18 +42,21 @@ impl<'a> UI<'a> {
         let event_handler = EventHandler::new();
 
         loop {
-            let client = self.client.lock().await;
-            let uistate = &mut self.uistate;
-            terminal.draw(|mut f| {
-                let size = f.size();
-                uistate.render(&mut f, size, &client.state);
-            })?;
+            {
+                let client = self.client.lock().await;
+                let uistate = &mut self.uistate;
+                terminal.draw(|mut f| {
+                    let size = f.size();
+                    uistate.render(&mut f, size, &client.state);
+                })?;
+            }
 
             match event_handler.recv()? {
                 InputEvent::Input(key) => {
-                    if key == KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL) {
+                    if key == Key::Ctrl('c') {
                         break;
                     }
+                    self.handle_keypress(key).await;
                     trace!("{:?} pressed", key);
                 }
                 InputEvent::Tick => {}

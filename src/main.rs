@@ -1,3 +1,4 @@
+#![feature(type_alias_impl_trait)]
 mod cli;
 mod client;
 mod connection;
@@ -13,6 +14,9 @@ use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use ui::*;
+
+#[macro_use]
+extern crate maplit;
 
 #[macro_use]
 extern crate log;
