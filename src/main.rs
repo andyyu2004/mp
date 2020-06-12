@@ -1,13 +1,17 @@
 mod cli;
+mod client;
 mod connection;
 mod error;
 mod protocol;
 mod ui;
 
+use client::*;
 use connection::Connection;
 use error::*;
 use log::LevelFilter;
 use std::path::Path;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 use ui::*;
 
 #[macro_use]
@@ -27,8 +31,11 @@ async fn main() -> ClientResult<()> {
     } else {
         // if no arguments were provided, start the ui
         simple_logging::log_to_file("log.log", LevelFilter::Trace)?;
-        let mut ui = UI::new();
-        ui.start()?;
+        let mut client = Client::new(&mut connection);
+        client.init().await?;
+        let client = Arc::new(Mutex::new(client));
+        let mut ui = UI::new(Arc::clone(&client));
+        ui.start().await?;
     }
 
     Ok(())
