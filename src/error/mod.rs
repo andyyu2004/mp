@@ -1,36 +1,14 @@
-use mp_protocol::{util, ProtocolError};
+use mp_protocol::{impl_from, util, ProtocolError};
 use std::fmt::{self, Display, Formatter};
 
 pub(crate) type ServerResult<T> = Result<T, ServerError>;
 
-impl From<taglib::FileError> for ServerError {
-    fn from(err: taglib::FileError) -> Self {
-        Self::FileError(err)
-    }
-}
-impl From<id3::Error> for ServerError {
-    fn from(err: id3::Error) -> Self {
-        Self::TagError(err)
-    }
-}
-
-impl From<ProtocolError> for ServerError {
-    fn from(err: ProtocolError) -> Self {
-        Self::ProtocolError(err)
-    }
-}
-
-impl From<std::io::Error> for ServerError {
-    fn from(err: std::io::Error) -> Self {
-        Self::IOError(err)
-    }
-}
-
-impl From<diesel::result::Error> for ServerError {
-    fn from(err: diesel::result::Error) -> Self {
-        Self::DbError(err)
-    }
-}
+impl_from!(taglib::FileError, ServerError, FileError);
+impl_from!(id3::Error, ServerError, TagError);
+impl_from!(ProtocolError, ServerError, ProtocolError);
+impl_from!(std::io::Error, ServerError, IOError);
+impl_from!(diesel::result::Error, ServerError, DbError);
+impl_from!(Vec<ServerError>, ServerError, Errors);
 
 #[derive(Debug)]
 pub enum ServerError {
