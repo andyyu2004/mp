@@ -7,6 +7,7 @@ use std::path::Path;
 #[derive(Debug, PartialEq)]
 pub enum Request<'r> {
     AddFile(Vec<&'r Path>),
+    FetchTracks,
 }
 
 /// implement decoding of a request from bytes of any encoding (encoding is encoded in the first byte of the buffer)
@@ -27,6 +28,7 @@ impl<'r> Decode<'r> for Request<'r> {
         let opcode = decoder.decode_opcode(buf[0])?;
         Ok(match opcode {
             Opcode::AddFile => Self::AddFile(decoder.decode_add_file(&buf[1..])?),
+            Opcode::FetchTracks => Self::FetchTracks,
         })
     }
 }

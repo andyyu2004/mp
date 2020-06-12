@@ -13,6 +13,7 @@ impl<'r> Encode for Request<'r> {
         E: Encoder,
     {
         match self {
+            Self::FetchTracks => encoder.encode_fetch_tracks(),
             Self::AddFile(paths) => encoder.encode_add_file(paths),
         }
     }

@@ -6,7 +6,8 @@ use std::convert::TryFrom;
 #[repr(u8)]
 pub enum Opcode {
     // ADD_FILE <file_path> (file includes directories)
-    AddFile = 0,
+    AddFile = 0x00,
+    FetchTracks = 0x01,
 }
 
 impl Opcode {
