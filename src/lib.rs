@@ -1,5 +1,8 @@
 #![feature(box_syntax, box_patterns)]
 
+#[macro_use]
+extern crate diesel;
+
 pub mod constants;
 pub mod decoding;
 pub mod encoding;
@@ -7,6 +10,7 @@ pub mod error;
 pub mod opcode;
 pub mod request;
 pub mod response;
+pub mod util;
 
 pub use constants::*;
 pub use decoding::*;
