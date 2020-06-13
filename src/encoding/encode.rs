@@ -6,15 +6,3 @@ pub trait Encode {
     where
         E: Encoder;
 }
-
-impl<'r> Encode for Request<'r> {
-    fn encode<E>(&self, mut encoder: E) -> Result<E::Ok, E::Error>
-    where
-        E: Encoder,
-    {
-        match self {
-            Self::FetchTracks => encoder.encode_fetch_tracks(),
-            Self::AddFile(paths) => encoder.encode_add_file(paths),
-        }
-    }
-}

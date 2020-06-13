@@ -13,10 +13,15 @@ where
     fn decode_opcode(&mut self, u: u8) -> Result<Opcode, Self::Error> {
         D::decode_opcode(self, u)
     }
+
+    fn decode_i32(&mut self, buf: &[u8; 4]) -> Result<i32, Self::Error> {
+        D::decode_i32(self, buf)
+    }
 }
 
 pub trait Decoder {
     type Error;
     fn decode_add_file<'a>(&mut self, buf: &'a [u8]) -> Result<Vec<&'a Path>, Self::Error>;
     fn decode_opcode(&mut self, u: u8) -> Result<Opcode, Self::Error>;
+    fn decode_i32(&mut self, buf: &[u8; 4]) -> Result<i32, Self::Error>;
 }

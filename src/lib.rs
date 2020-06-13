@@ -23,6 +23,7 @@ pub use response::*;
 #[cfg(test)]
 mod test {
     use super::*;
+    use rand::Rng;
     use std::convert::TryFrom;
     use std::path::Path;
 
@@ -32,10 +33,10 @@ mod test {
             .into_iter()
             .map(Path::new)
             .collect();
-        let mut buf = [0u8; 1024];
+        let mut buf = vec![];
         let req = Request::AddFile(paths.clone());
-        let count = binary_encode_to_bytes(&req, &mut buf[..])?;
-        let decoded = Request::try_from(&buf[..count])?;
+        binary_encode_to_bytes(&req, &mut buf)?;
+        let decoded = Request::try_from(&buf[..])?;
         let current_dir = std::env::current_dir()?;
         let absolute_paths: Vec<String> = paths
             .into_iter()
@@ -54,5 +55,26 @@ mod test {
         );
 
         Ok(())
+    }
+
+    macro_rules! encode_decode {
+        ($req:expr) => {{
+            let req = $req;
+            let mut buf = vec![];
+            binary_encode_to_bytes(&req, &mut buf)?;
+            let decoded = Request::try_from(&buf[..])?;
+            assert_eq!(decoded, req);
+            Ok(())
+        }};
+    }
+
+    #[test]
+    fn encode_decode_fetch_tracks() -> ProtocolResult<()> {
+        encode_decode!(Request::FetchTracks)
+    }
+
+    #[test]
+    fn encode_decode_play_track() -> ProtocolResult<()> {
+        encode_decode!(Request::PlayTrack(rand::thread_rng().gen()))
     }
 }

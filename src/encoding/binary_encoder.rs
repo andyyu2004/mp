@@ -1,5 +1,4 @@
 use crate::{Encoder, Encoding, Opcode, ProtocolError, ProtocolResult};
-use serde::Serialize;
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -15,6 +14,11 @@ where
     pub fn new(writer: W) -> Self {
         Self { writer }
     }
+
+    fn write_encoding_opcode(&mut self, opcode: Opcode) -> ProtocolResult<()> {
+        self.writer.write(&[Encoding::Binary as u8, opcode as u8])?;
+        Ok(())
+    }
 }
 
 impl<W> Encoder for &mut BinaryEncoder<W>
@@ -28,8 +32,7 @@ where
         &mut self,
         paths: impl IntoIterator<Item = impl AsRef<Path>>,
     ) -> ProtocolResult<()> {
-        self.writer
-            .write(&[Encoding::Binary as u8, Opcode::AddFile as u8])?;
+        self.write_encoding_opcode(Opcode::AddFile)?;
         let absolute_paths_bufs = paths
             .into_iter()
             .map(fs::canonicalize)
@@ -40,8 +43,12 @@ where
     }
 
     fn encode_fetch_tracks(&mut self) -> Result<Self::Ok, Self::Error> {
-        self.writer
-            .write(&[Encoding::Binary as u8, Opcode::FetchTracks as u8])?;
+        self.write_encoding_opcode(Opcode::FetchTracks)
+    }
+
+    fn encode_play_track(&mut self, track_id: i32) -> Result<Self::Ok, Self::Error> {
+        self.write_encoding_opcode(Opcode::PlayTrack)?;
+        self.writer.write(&track_id.to_be_bytes())?;
         Ok(())
     }
 }

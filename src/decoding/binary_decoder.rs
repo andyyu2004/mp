@@ -15,4 +15,8 @@ impl Decoder for BinaryDecoder {
     fn decode_opcode(&mut self, u: u8) -> Result<Opcode, Self::Error> {
         Opcode::from_u8(u)
     }
+
+    fn decode_i32(&mut self, buf: &[u8; 4]) -> Result<i32, Self::Error> {
+        Ok(i32::from_be_bytes(*buf))
+    }
 }

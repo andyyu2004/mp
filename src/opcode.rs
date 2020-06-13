@@ -8,6 +8,7 @@ pub enum Opcode {
     // ADD_FILE <file_path> (file includes directories)
     AddFile = 0x00,
     FetchTracks = 0x01,
+    PlayTrack = 0x02,
 }
 
 impl Opcode {
