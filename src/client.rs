@@ -1,5 +1,4 @@
-use crate::ui::handlers;
-use crate::ui::Key;
+use crate::ui::{Key, handlers, Region};
 use crate::{error::ClientResult, ui::UI, Connection};
 use mp_protocol::JoinedTrack;
 use std::{borrow::Borrow, collections::HashMap, hash::Hash};
@@ -19,12 +18,12 @@ impl Default for ClientState {
 // then have another map from strings to functions
 //
 pub(crate) type Handler = for<'r, 'b> fn(&'r mut UI<'b>);
-pub(crate) struct KeyMap(HashMap<Key, Handler>);
+pub(crate) struct KeyMap(HashMap<(Region, Key), Handler>);
 
 impl KeyMap {
     pub fn get<Q>(&self, k: &Q) -> Option<Handler>
     where
-        Key: Borrow<Q>,
+        (Region, Key): Borrow<Q>,
         Q: Hash + Eq + ?Sized,
     {
         self.0.get(k).map(|f| *f)
@@ -34,8 +33,8 @@ impl KeyMap {
 impl Default for KeyMap {
     fn default() -> Self {
         let map = hashmap! {
-            Key::Char('j') => handlers::handle_j_pressed as Handler,
-            Key::Char('k') => handlers::handle_k_pressed as Handler
+            (Region::TrackList, Key::Char('j')) => handlers::tracklist::handle_next as Handler,
+            (Region::TrackList, Key::Char('k')) => handlers::tracklist::handle_prev as Handler
         };
         Self(map)
     }

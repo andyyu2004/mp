@@ -9,7 +9,7 @@ mod uistate;
 use crate::{Client, ClientResult};
 use event::{EventHandler, InputEvent};
 pub(crate) use key::Key;
-use region::Region;
+pub(crate) use region::Region;
 use render::Render;
 use std::sync::Arc;
 use tokio::sync::Mutex;
