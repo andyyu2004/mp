@@ -7,7 +7,6 @@ mod render;
 mod uistate;
 
 use crate::{Client, ClientResult};
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use event::{EventHandler, InputEvent};
 pub(crate) use key::Key;
 use region::Region;
@@ -63,6 +62,7 @@ impl<'a> UI<'a> {
             }
         }
 
+        terminal.clear()?;
         crossterm::terminal::disable_raw_mode().unwrap();
         Ok(())
     }

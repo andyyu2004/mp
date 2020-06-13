@@ -1,4 +1,6 @@
 #![feature(type_alias_impl_trait)]
+#![feature(stmt_expr_attributes)]
+
 mod cli;
 mod client;
 mod connection;

@@ -21,14 +21,8 @@ impl UI<'_> {
 
 // can't get types to work out when these are defined as methods on UI
 pub(crate) fn track_list_next(ui: &mut UI) {
-    let n = {
-        let client = executor::block_on(ui.client.lock());
-        client.state.tracks.len()
-    };
-
-    if n == 0 {
-        return;
-    }
+    let n = executor::block_on(ui.client.lock()).state.tracks.len();
+    if n == 0 { return; }
 
     let s = &mut ui.uistate.track_list_state;
     let new_index = match s.selected() {
@@ -40,14 +34,8 @@ pub(crate) fn track_list_next(ui: &mut UI) {
 }
 
 pub(crate) fn track_list_prev(ui: &mut UI) {
-    let n = {
-        let client = executor::block_on(ui.client.lock());
-        client.state.tracks.len()
-    };
-
-    if n == 0 {
-        return;
-    }
+    let n = executor::block_on(ui.client.lock()).state.tracks.len();
+    if n == 0 { return; }
 
     let s = &mut ui.uistate.track_list_state;
     let new_index = match s.selected() {
