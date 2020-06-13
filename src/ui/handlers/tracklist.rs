@@ -24,3 +24,7 @@ pub(crate) fn handle_prev(ui: &mut UI) {
         Some(i) => (i + n - 1) % n,
     });
 }
+
+pub(crate) fn handle_play(ui: &mut UI) {
+    trace!("play ");
+}
