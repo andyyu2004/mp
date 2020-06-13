@@ -34,8 +34,8 @@ impl KeyMap {
 impl Default for KeyMap {
     fn default() -> Self {
         let map = hashmap! {
-            Key::Char('k') => handlers::track_list_prev as Handler,
-            Key::Char('j') => handlers::track_list_next as Handler
+            Key::Char('j') => handlers::handle_j_pressed as Handler,
+            Key::Char('k') => handlers::handle_k_pressed as Handler
         };
         Self(map)
     }

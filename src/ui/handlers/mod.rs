@@ -1,4 +1,6 @@
-use super::{key::Key, UI};
+mod tracklist;
+
+use super::{Key, UI, Region};
 use futures::executor;
 
 impl UI<'_> {
@@ -20,28 +22,15 @@ impl UI<'_> {
 }
 
 // can't get types to work out when these are defined as methods on UI
-pub(crate) fn track_list_next(ui: &mut UI) {
-    let n = executor::block_on(ui.client.lock()).state.tracks.len();
-    if n == 0 { return; }
-
-    let s = &mut ui.uistate.track_list_state;
-    let new_index = match s.selected() {
-        None => 0,
-        Some(i) => (i + 1) % n,
-    };
-
-    s.select(Some(new_index));
+pub(crate) fn handle_j_pressed(ui: &mut UI) {
+    match ui.uistate.focused_region {
+        Region::TrackList => tracklist::handle_next(ui)
+    }
 }
 
-pub(crate) fn track_list_prev(ui: &mut UI) {
-    let n = executor::block_on(ui.client.lock()).state.tracks.len();
-    if n == 0 { return; }
-
-    let s = &mut ui.uistate.track_list_state;
-    let new_index = match s.selected() {
-        None => n - 1,
-        Some(i) => (i + n - 1) % n,
-    };
-
-    s.select(Some(new_index));
+pub(crate) fn handle_k_pressed(ui: &mut UI) {
+    match ui.uistate.focused_region {
+        Region::TrackList => tracklist::handle_prev(ui),
+    }
 }
+

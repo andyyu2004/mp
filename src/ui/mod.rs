@@ -56,7 +56,6 @@ impl<'a> UI<'a> {
                         break;
                     }
                     self.handle_keypress(key).await;
-                    trace!("{:?} pressed", key);
                 }
                 InputEvent::Tick => {}
             }
