@@ -4,16 +4,17 @@ use crate::ServerResult;
 use mp_protocol::{Request, Response, BUF_CAP};
 use std::convert::TryFrom;
 use std::io;
+use std::sync::{Arc, Mutex};
 use tokio::net::UnixDatagram;
 
 pub(crate) struct Server<'a> {
     socket: UnixDatagram,
     pub(crate) db: &'a mut Database,
-    pub(crate) player: &'a mut Player,
+    pub(crate) player: Player,
 }
 
 impl<'a> Server<'a> {
-    pub fn new(path: &str, db: &'a mut Database, player: &'a mut Player) -> io::Result<Self> {
+    pub fn new(path: &str, db: &'a mut Database, player: Player) -> io::Result<Self> {
         Ok(Self {
             socket: UnixDatagram::bind(path)?,
             db,
