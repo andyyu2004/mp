@@ -40,6 +40,12 @@ impl<'a> Server<'a> {
             Request::AddFile(paths) => self.handle_add_files(&paths),
             Request::FetchTracks => self.handle_fetch_tracks(),
             Request::PlayTrack(track_id) => self.handle_play_track(track_id),
+            Request::QAppend(track_id) => self.handle_q_append(track_id),
+            Request::FetchPlaybackState => self.handle_fetch_playback_state(),
+            Request::PausePlayback => self.handle_pause_playback(),
+            Request::ResumePlayback => self.handle_resume_playback(),
+            Request::TogglePlay => self.handle_toggle_play(),
+            Request::FetchQ => self.handle_fetch_q(),
         };
 
         match res {

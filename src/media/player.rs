@@ -20,12 +20,10 @@ impl Player {
 
         let event_manager = player.event_manager();
         // subscribe to events we care about
-        for event in &[vlc::EventType::MediaPlayerEndReached] {
+        for &event_type in &[vlc::EventType::MediaPlayerEndReached] {
             let txc = tx.clone();
             event_manager
-                .attach(vlc::EventType::MediaPlayerEndReached, move |event, _obj| {
-                    txc.send(event).unwrap()
-                })
+                .attach(event_type, move |event, _obj| txc.send(event).unwrap())
                 .unwrap();
         }
         Self {
@@ -47,6 +45,24 @@ impl Player {
         Ok(())
     }
 
+    pub fn pause(&mut self) {
+        self.player.set_pause(true)
+    }
+
+    pub fn resume(&mut self) {
+        self.player.set_pause(false)
+    }
+
+    pub fn toggle_play(&mut self) {
+        self.player.pause()
+    }
+
+    pub fn getq(&mut self) -> (Vec<JoinedTrack>, VecDeque<JoinedTrack>) {
+        let state = self.state.lock().unwrap();
+        let (hist, q) = state.get();
+        (hist.clone(), q.clone())
+    }
+
     pub fn get_status(&self) -> PlaybackState {
         let state = self.state.lock().unwrap();
         PlaybackState {
@@ -55,15 +71,16 @@ impl Player {
                 .player
                 .get_media()
                 .and_then(|m| m.duration())
-                .unwrap_or(0),
-            curr_time: self.player.get_time().unwrap_or(0),
+                .unwrap_or(1),
+            progress: self.player.get_time().unwrap_or(0),
             is_playing: self.player.is_playing(),
         }
     }
 
     /// appends the audio from provided path to queue
     /// assumes the path is valid
-    pub fn append_file_to_queue(&self, path: impl AsRef<Path>) -> MediaResult<()> {
-        todo!();
+    pub fn q_append(&self, track: JoinedTrack) {
+        let mut state = self.state.lock().unwrap();
+        state.append(track)
     }
 }

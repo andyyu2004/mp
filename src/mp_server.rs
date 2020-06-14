@@ -18,9 +18,39 @@ impl Server<'_> {
         Ok(Response::Tracks(self.db.get_all()?))
     }
 
+    pub(crate) fn handle_fetch_q(&mut self) -> ServerResult<Response> {
+        let (hist, q) = self.player.getq();
+        Ok(Response::Q(hist, q))
+    }
+
     pub(crate) fn handle_play_track(&mut self, track_id: i32) -> ServerResult<Response> {
         let track = self.db.get_track(track_id)?;
         self.player.play_file(track)?;
+        Ok(Response::Ok)
+    }
+
+    pub(crate) fn handle_q_append(&mut self, track_id: i32) -> ServerResult<Response> {
+        let track = self.db.get_track(track_id)?;
+        self.player.q_append(track);
+        Ok(Response::Ok)
+    }
+
+    pub(crate) fn handle_fetch_playback_state(&mut self) -> ServerResult<Response> {
+        Ok(Response::PlaybackState(self.player.get_status()))
+    }
+
+    pub(crate) fn handle_pause_playback(&mut self) -> ServerResult<Response> {
+        self.player.pause();
+        Ok(Response::Ok)
+    }
+
+    pub(crate) fn handle_toggle_play(&mut self) -> ServerResult<Response> {
+        self.player.toggle_play();
+        Ok(Response::Ok)
+    }
+
+    pub(crate) fn handle_resume_playback(&mut self) -> ServerResult<Response> {
+        self.player.resume();
         Ok(Response::Ok)
     }
 }

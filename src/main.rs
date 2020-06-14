@@ -32,7 +32,7 @@ async fn main() -> io::Result<()> {
     let mpstate = Arc::new(Mutex::new(MPState::default()));
     let player = Player::new(tx, Arc::clone(&mpstate));
 
-    let mut vlc_event_handler = MediaEventHandler::new(mpstate, rx);
+    let vlc_event_handler = MediaEventHandler::new(mpstate, rx);
     std::thread::spawn(move || vlc_event_handler.listen());
 
     let mut server = Server::new(path, &mut db, player)?;

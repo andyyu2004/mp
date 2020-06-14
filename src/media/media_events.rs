@@ -21,8 +21,4 @@ impl MediaEventHandler {
     pub fn new(mp_state: Arc<Mutex<MPState>>, rx: Receiver<vlc::Event>) -> Self {
         Self { mp_state, rx }
     }
-
-    pub fn handle_end_reached(&mut self, event_type: Event, obj: VLCObject) {
-        dbg!("yeetttt");
-    }
 }

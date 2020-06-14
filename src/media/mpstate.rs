@@ -15,9 +15,17 @@ impl MPState {
         self.queue.push_front(track)
     }
 
+    pub fn append(&mut self, track: JoinedTrack) {
+        self.queue.push_back(track)
+    }
+
     pub fn play_next(&mut self) {
         let played = self.queue.pop_front().unwrap();
         self.history.push(played);
+    }
+
+    pub fn get(&self) -> (&Vec<JoinedTrack>, &VecDeque<JoinedTrack>) {
+        (&self.history, &self.queue)
     }
 }
 
