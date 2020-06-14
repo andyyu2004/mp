@@ -12,9 +12,6 @@ impl Render for Sidebar {
     ) where
         B: tui::backend::Backend,
     {
-        f.render_widget(
-            Block::default().title("sidebar").borders(Borders::ALL),
-            rect,
-        );
+        f.render_widget(Block::default().title("queue").borders(Borders::ALL), rect);
     }
 }

@@ -1,5 +1,14 @@
 name: mpclient
 subcommands:
+    - play:
+        about: resume playback or pass a track to play immediately
+        args:
+            - TRACK:
+                about: set the track
+                required: false
+                index: 1
+    - pause:
+        about: pause playback
     - add:
         about: add music to library
         args:

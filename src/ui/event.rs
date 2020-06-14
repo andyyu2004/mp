@@ -3,7 +3,7 @@ use crossterm::event::Event;
 use std::io;
 use std::{sync::mpsc, thread, time::Duration};
 
-const TICK_RATE: u64 = 100;
+const TICK_RATE: u64 = 40;
 
 pub(crate) enum InputEvent<T> {
     Input(T),

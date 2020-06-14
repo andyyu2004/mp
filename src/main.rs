@@ -28,13 +28,23 @@ async fn main() -> ClientResult<()> {
 
     let (tx, rx) = mpsc::channel();
     let client = Arc::new(Mutex::new(Client::new()));
-    let mut connection = Connection::new("/tmp/mp-client", Arc::clone(&client), rx)?;
+    let mut connection = Connection::new("/tmp/mp-client", Arc::clone(&client), rx, tx.clone())?;
 
     if let Some(matches) = matches.subcommand_matches("add") {
         let files: Vec<&str> = matches.values_of("FILES").unwrap().collect();
         connection
-            .add_files(files.into_iter().map(Path::new).collect())
+            .dispatch_add_files(files.into_iter().map(Path::new).collect())
             .await?;
+    } else if let Some(matches) = matches.subcommand_matches("play") {
+        match matches.values_of("TRACK") {
+            Some(mut track) => {
+                let _track = track.next();
+                // do some fuzzy search or something on this input and play the closest match
+            }
+            None => connection.dispatch_play().await?,
+        }
+    } else if let Some(_) = matches.subcommand_matches("pause") {
+        connection.dispatch_pause().await?;
     } else {
         // if no arguments were provided, start the ui
         simple_logging::log_to_file("log.log", LevelFilter::Trace)?;

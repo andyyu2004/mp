@@ -1,4 +1,14 @@
 use crate::{network::IOEvent, UI};
+use mp_protocol::JoinedTrack;
+
+macro_rules! early_return {
+    ($option:expr) => {
+        match $option {
+            Some(x) => x,
+            None => return,
+        }
+    };
+}
 
 impl UI {
     pub(crate) fn handle_next_track(ui: &mut UI) {
@@ -25,14 +35,19 @@ impl UI {
         });
     }
 
-    pub(crate) fn handle_play_track(&mut self) {
-        let index = match self.uistate.track_list_state.selected() {
-            Some(i) => i,
-            None => return,
-        };
+    pub(crate) fn handle_queue_append(&mut self) {
+        let index = early_return!(self.uistate.track_list_state.selected());
+        let track = &self.client.lock().unwrap().state.tracks[index];
+        self.dispatch(IOEvent::QueueAppend(track.track_id));
+    }
 
+    pub(crate) fn handle_play_track(&mut self) {
+        let index = early_return!(self.uistate.track_list_state.selected());
         let track = &self.client.lock().unwrap().state.tracks[index];
         self.dispatch(IOEvent::PlayTrack(track.track_id));
-        trace!("play track: {}", track);
+    }
+
+    pub(crate) fn handle_toggle_play(&mut self) {
+        self.dispatch(IOEvent::TogglePlay)
     }
 }

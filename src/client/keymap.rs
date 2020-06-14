@@ -9,7 +9,9 @@ lazy_static! {
     pub(crate) static ref FMAP: HashMap<&'static str, Handler> = hashmap! {
         "select_prev" => UI::handle_prev_track as Handler,
         "select_next" => UI::handle_next_track,
-        "play_track" => UI::handle_play_track
+        "play_track" => UI::handle_play_track,
+        "toggle_play" => UI::handle_toggle_play,
+        "queue_append" => UI::handle_queue_append,
     };
 }
 
@@ -31,7 +33,9 @@ impl Default for KeyMap {
         let map = hashmap! {
             (Region::TrackList, Key::Char('j')) => "select_next",
             (Region::TrackList, Key::Char('k')) => "select_prev",
-            (Region::TrackList, Key::Enter) => "play_track"
+            (Region::TrackList, Key::Enter) => "play_track",
+            (Region::TrackList, Key::Ctrl('d')) => "toggle_play",
+            (Region::TrackList, Key::Ctrl('a')) => "queue_append",
         };
         Self(map)
     }

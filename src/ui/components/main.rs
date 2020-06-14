@@ -23,7 +23,7 @@ impl Render for Main<'_> {
     {
         let layout = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([Constraint::Length(20), Constraint::Min(1)])
+            .constraints([Constraint::Length(30), Constraint::Min(1)])
             .split(rect);
 
         Sidebar.render(f, layout[0], state);

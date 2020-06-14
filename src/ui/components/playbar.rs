@@ -1,7 +1,7 @@
 use crate::ui::{render::Render, uistate::UIState};
 use crate::util;
 use mp_protocol::PlaybackState;
-use tui::layout::{Constraint, Direction, Layout};
+use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::*;
 
@@ -29,7 +29,6 @@ impl Render for Playbar<'_> {
             .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
             .split(rect);
 
-        let song_progress_label = "song_progress";
         let PlaybackState {
             progress,
             duration,
@@ -38,13 +37,27 @@ impl Render for Playbar<'_> {
         } = &state.playback_state;
         let percentage = state.playback_state.progress * 100 / state.playback_state.duration;
 
+        let (title_text, subtext) = match curr_track {
+            Some(t) => (
+                t.title.as_str(),
+                format!("\n{} - {}", t.album_title, t.artist_name),
+            ),
+            None => ("no track playing\n", String::new()),
+        };
+
+        let text = [Text::raw(title_text), Text::raw(subtext)];
+
+        let song_info = Paragraph::new(text.iter()).alignment(Alignment::Center);
+
+        f.render_widget(song_info, layout[0]);
         let duration_display = util::format_millis(*duration);
         let progress_display = util::format_millis(*progress);
         let remaining_display = util::format_millis(duration - progress);
 
+        let playing_display = if *is_playing { ">>" } else { "||" };
         let song_progress_label = format!(
-            "{}/{} (-{})",
-            progress_display, duration_display, remaining_display
+            "{} {}/{} (-{})",
+            playing_display, progress_display, duration_display, remaining_display
         );
 
         let song_progress = Gauge::default()

@@ -3,12 +3,14 @@ use crate::Client;
 use mp_protocol::ProtocolResult;
 use std::io;
 use std::path::Path;
-use std::sync::{mpsc::Receiver, Arc, Mutex};
+use std::sync::mpsc::{Receiver, Sender};
+use std::sync::{Arc, Mutex};
 use tokio::net::UnixDatagram;
 
 pub(crate) struct Connection {
     socket: UnixDatagram,
     rx: Receiver<IOEvent>,
+    pub(crate) tx: Sender<IOEvent>,
     pub(crate) client: Arc<Mutex<Client>>,
 }
 
@@ -17,10 +19,16 @@ impl Connection {
         path: impl AsRef<Path>,
         client: Arc<Mutex<Client>>,
         rx: Receiver<IOEvent>,
+        tx: Sender<IOEvent>,
     ) -> io::Result<Self> {
         let socket = UnixDatagram::bind(path)?;
         socket.connect("/tmp/mp-server")?;
-        Ok(Self { socket, rx, client })
+        Ok(Self {
+            socket,
+            rx,
+            client,
+            tx,
+        })
     }
 
     pub async fn listen(&mut self) -> ProtocolResult<()> {
@@ -32,17 +40,17 @@ impl Connection {
 
     async fn handle_io_event(&mut self, event: IOEvent) -> ProtocolResult<()> {
         match event {
-            IOEvent::UpdatePlaybackStatus => self.fetch_playback_state().await,
+            IOEvent::UpdatePlaybackStatus => self.dispatch_fetch_playback_state().await,
             IOEvent::InitClient => self.init_client().await,
-            IOEvent::PlayTrack(track_id) => {
-                self.play_track(track_id).await?;
-                Ok(())
-            }
+            IOEvent::PlayTrack(track_id) => Ok(self.dispatch_play_track(track_id).await?),
+            IOEvent::QueueAppend(track_id) => Ok(self.dispatch_queue_append(track_id).await?),
+            IOEvent::TogglePlay => Ok(self.dispatch_toggle_play().await?),
+            IOEvent::FetchQ => Ok(self.dispatch_fetch_q().await?),
         }
     }
 
     pub async fn init_client(&mut self) -> ProtocolResult<()> {
-        self.fetch_tracks().await
+        self.dispatch_fetch_tracks().await
     }
 
     pub async fn send(&mut self, bytes: &[u8]) -> io::Result<()> {

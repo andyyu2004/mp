@@ -24,7 +24,7 @@ impl Render for Content<'_> {
         let strings = state.tracks.iter().map(|t| &t.title);
         let items = strings.map(Text::raw);
         let list = List::new(items)
-            .block(Block::default().title("list").borders(Borders::ALL))
+            .block(Block::default().title("tracks").borders(Borders::ALL))
             .style(Style::default().fg(Color::White))
             .highlight_style(Style::default().modifier(Modifier::ITALIC))
             .highlight_symbol(">>");
