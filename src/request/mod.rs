@@ -8,7 +8,13 @@ use std::path::Path;
 pub enum Request<'r> {
     AddFile(Vec<&'r Path>),
     PlayTrack(i32),
+    QAppend(i32),
     FetchTracks,
+    FetchQ,
+    FetchPlaybackState,
+    ResumePlayback,
+    PausePlayback,
+    TogglePlay,
 }
 
 /// implement decoding of a request from bytes of any encoding (encoding is encoded in the first byte of the buffer)
@@ -27,9 +33,15 @@ impl<'r> Encode for Request<'r> {
         E: Encoder,
     {
         match self {
-            Self::FetchTracks => encoder.encode_fetch_tracks(),
+            Self::FetchTracks => encoder.encode_opcode(Opcode::FetchTrk),
             Self::AddFile(paths) => encoder.encode_add_file(paths),
-            Self::PlayTrack(track_id) => encoder.encode_play_track(*track_id),
+            Self::PlayTrack(track_id) => encoder.encode_f_track(Opcode::PlayTrk, *track_id),
+            Self::QAppend(track_id) => encoder.encode_f_track(Opcode::QAppend, *track_id),
+            Self::FetchPlaybackState => encoder.encode_opcode(Opcode::FetchPlaybackState),
+            Self::ResumePlayback => encoder.encode_opcode(Opcode::ResumePlayback),
+            Self::PausePlayback => encoder.encode_opcode(Opcode::PausePlayback),
+            Self::TogglePlay => encoder.encode_opcode(Opcode::TogglePlay),
+            Self::FetchQ => encoder.encode_opcode(Opcode::QFetch),
         }
     }
 }
@@ -42,10 +54,14 @@ impl<'r> Decode<'r> for Request<'r> {
         let opcode = decoder.decode_opcode(buf[0])?;
         Ok(match opcode {
             Opcode::AddFile => Self::AddFile(decoder.decode_add_file(&buf[1..])?),
-            Opcode::FetchTracks => Self::FetchTracks,
-            Opcode::PlayTrack => {
-                Self::PlayTrack(decoder.decode_i32(&buf[1..5].try_into().unwrap())?)
-            }
+            Opcode::FetchTrk => Self::FetchTracks,
+            Opcode::PlayTrk => Self::PlayTrack(decoder.decode_i32(&buf[1..5].try_into().unwrap())?),
+            Opcode::QAppend => Self::QAppend(decoder.decode_i32(&buf[1..5].try_into().unwrap())?),
+            Opcode::FetchPlaybackState => Self::FetchPlaybackState,
+            Opcode::TogglePlay => Self::TogglePlay,
+            Opcode::ResumePlayback => Self::ResumePlayback,
+            Opcode::PausePlayback => Self::PausePlayback,
+            Opcode::QFetch => Self::FetchQ,
         })
     }
 }

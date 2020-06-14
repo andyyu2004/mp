@@ -7,8 +7,14 @@ use std::convert::TryFrom;
 pub enum Opcode {
     // ADD_FILE <file_path> (file includes directories)
     AddFile = 0x00,
-    FetchTracks = 0x01,
-    PlayTrack = 0x02,
+    FetchTrk = 0x01,
+    PlayTrk = 0x02,
+    FetchPlaybackState = 0x03,
+    ResumePlayback = 0x04,
+    PausePlayback = 0x05,
+    TogglePlay = 0x06,
+    QAppend = 0x07,
+    QFetch = 0x08,
 }
 
 impl Opcode {

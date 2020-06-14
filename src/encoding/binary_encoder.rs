@@ -14,11 +14,6 @@ where
     pub fn new(writer: W) -> Self {
         Self { writer }
     }
-
-    fn write_encoding_opcode(&mut self, opcode: Opcode) -> ProtocolResult<()> {
-        self.writer.write(&[Encoding::Binary as u8, opcode as u8])?;
-        Ok(())
-    }
 }
 
 impl<W> Encoder for &mut BinaryEncoder<W>
@@ -32,7 +27,7 @@ where
         &mut self,
         paths: impl IntoIterator<Item = impl AsRef<Path>>,
     ) -> ProtocolResult<()> {
-        self.write_encoding_opcode(Opcode::AddFile)?;
+        self.encode_opcode(Opcode::AddFile)?;
         let absolute_paths_bufs = paths
             .into_iter()
             .map(fs::canonicalize)
@@ -42,12 +37,13 @@ where
         Ok(())
     }
 
-    fn encode_fetch_tracks(&mut self) -> Result<Self::Ok, Self::Error> {
-        self.write_encoding_opcode(Opcode::FetchTracks)
+    fn encode_opcode(&mut self, opcode: Opcode) -> Result<Self::Ok, Self::Error> {
+        self.writer.write(&[Encoding::Binary as u8, opcode as u8])?;
+        Ok(())
     }
 
-    fn encode_play_track(&mut self, track_id: i32) -> Result<Self::Ok, Self::Error> {
-        self.write_encoding_opcode(Opcode::PlayTrack)?;
+    fn encode_f_track(&mut self, opcode: Opcode, track_id: i32) -> Result<Self::Ok, Self::Error> {
+        self.encode_opcode(opcode)?;
         self.writer.write(&track_id.to_be_bytes())?;
         Ok(())
     }

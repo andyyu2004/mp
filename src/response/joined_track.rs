@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
-#[derive(Queryable, Debug, Serialize, Deserialize)]
+#[derive(Queryable, Debug, Serialize, Deserialize, Clone, Eq)]
 pub struct JoinedTrack {
     pub track_id: i32,
     pub title: String,
@@ -20,6 +20,12 @@ pub struct JoinedTrack {
     pub total_tracks: Option<i32>,
     pub artist_id: i32,
     pub artist_name: String,
+}
+
+impl PartialEq for JoinedTrack {
+    fn eq(&self, other: &Self) -> bool {
+        self.track_id == other.track_id
+    }
 }
 
 impl Display for JoinedTrack {
