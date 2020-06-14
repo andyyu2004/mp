@@ -63,12 +63,16 @@ impl UI {
                     }
                     self.handle_keypress(key);
                 }
-                InputEvent::Tick => {}
+                InputEvent::Tick => self.tick(),
             }
         }
 
         crossterm::terminal::disable_raw_mode().unwrap();
         terminal.clear()?;
         Ok(())
+    }
+
+    fn tick(&self) {
+        self.io_tx.send(IOEvent::UpdatePlaybackStatus).unwrap();
     }
 }

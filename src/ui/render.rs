@@ -35,16 +35,16 @@ impl Render for UIState {
         B: Backend,
     {
         let layout = self.get_layout().split(rect);
-        let (top_bar_rect, main_rect, play_bar_rect, statusbar_rect) =
+        let (top_bar_rect, main_rect, playbar_rect, statusbar_rect) =
             (layout[0], layout[1], layout[2], layout[3]);
         let block = Block::default().title("top").borders(Borders::ALL);
         f.render_widget(block, top_bar_rect);
 
         Main::new(self).render(f, main_rect, state);
 
-        let block = Block::default().title("play_bar").borders(Borders::ALL);
-        f.render_widget(block, play_bar_rect);
-        let block = Block::default().title("stausbar").borders(Borders::ALL);
+        Playbar::new(self).render(f, playbar_rect, state);
+
+        let block = Block::default().title("status bar").borders(Borders::ALL);
         f.render_widget(block, statusbar_rect);
     }
 }

@@ -6,6 +6,7 @@ mod client;
 mod error;
 mod network;
 mod ui;
+mod util;
 
 use client::*;
 use error::*;

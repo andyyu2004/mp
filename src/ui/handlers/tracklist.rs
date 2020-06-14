@@ -1,4 +1,4 @@
-use crate::UI;
+use crate::{network::IOEvent, UI};
 
 impl UI {
     pub(crate) fn handle_next_track(ui: &mut UI) {
@@ -25,13 +25,14 @@ impl UI {
         });
     }
 
-    pub(crate) fn handle_play_track(ui: &mut UI) {
-        let index = match ui.uistate.track_list_state.selected() {
+    pub(crate) fn handle_play_track(&mut self) {
+        let index = match self.uistate.track_list_state.selected() {
             Some(i) => i,
             None => return,
         };
 
-        let track = &ui.client.lock().unwrap().state.tracks[index];
+        let track = &self.client.lock().unwrap().state.tracks[index];
+        self.dispatch(IOEvent::PlayTrack(track.track_id));
         trace!("play track: {}", track);
     }
 }

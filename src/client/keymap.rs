@@ -1,4 +1,4 @@
-use crate::ui::{handlers, Key, Region, UI};
+use crate::ui::{Key, Region, UI};
 use lazy_static::lazy_static;
 use std::borrow::Borrow;
 use std::collections::HashMap;

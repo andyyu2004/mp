@@ -9,7 +9,7 @@ use tokio::net::UnixDatagram;
 pub(crate) struct Connection {
     socket: UnixDatagram,
     rx: Receiver<IOEvent>,
-    client: Arc<Mutex<Client>>,
+    pub(crate) client: Arc<Mutex<Client>>,
 }
 
 impl Connection {
@@ -32,15 +32,17 @@ impl Connection {
 
     async fn handle_io_event(&mut self, event: IOEvent) -> ProtocolResult<()> {
         match event {
+            IOEvent::UpdatePlaybackStatus => self.fetch_playback_state().await,
             IOEvent::InitClient => self.init_client().await,
+            IOEvent::PlayTrack(track_id) => {
+                self.play_track(track_id).await?;
+                Ok(())
+            }
         }
     }
 
     pub async fn init_client(&mut self) -> ProtocolResult<()> {
-        let tracks = self.fetch_tracks().await?;
-        let mut client = self.client.lock().unwrap();
-        client.state.tracks = tracks;
-        Ok(())
+        self.fetch_tracks().await
     }
 
     pub async fn send(&mut self, bytes: &[u8]) -> io::Result<()> {
