@@ -6,31 +6,36 @@ mod region;
 mod render;
 mod uistate;
 
-use crate::{Client, ClientResult};
+use crate::{network::IOEvent, Client, ClientResult};
 use event::{EventHandler, InputEvent};
 pub(crate) use key::Key;
 pub(crate) use region::Region;
 use render::Render;
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use std::sync::{mpsc::Sender, Arc, Mutex};
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
 use uistate::UIState;
 
-pub(crate) struct UI<'a> {
+pub(crate) struct UI {
     pub uistate: UIState,
-    pub client: Arc<Mutex<Client<'a>>>,
+    pub client: Arc<Mutex<Client>>,
+    pub io_tx: Sender<IOEvent>,
 }
 
-impl<'a> UI<'a> {
-    pub fn new(client: Arc<Mutex<Client<'a>>>) -> Self {
+impl UI {
+    pub fn new(client: Arc<Mutex<Client>>, io_tx: Sender<IOEvent>) -> Self {
         Self {
             client,
             uistate: UIState::default(),
+            io_tx,
         }
     }
 
-    pub async fn start(&mut self) -> ClientResult<()> {
+    fn dispatch(&self, event: IOEvent) {
+        self.io_tx.send(event).unwrap()
+    }
+
+    pub fn start(&mut self) -> ClientResult<()> {
         let stdout = std::io::stdout();
         let backend = CrosstermBackend::new(stdout);
         crossterm::terminal::enable_raw_mode().unwrap();
@@ -39,10 +44,11 @@ impl<'a> UI<'a> {
         terminal.clear()?;
 
         let event_handler = EventHandler::new();
+        self.dispatch(IOEvent::InitClient);
 
         loop {
             {
-                let client = self.client.lock().await;
+                let client = self.client.lock().unwrap();
                 let uistate = &mut self.uistate;
                 terminal.draw(|mut f| {
                     let size = f.size();
@@ -55,14 +61,14 @@ impl<'a> UI<'a> {
                     if key == Key::Ctrl('c') {
                         break;
                     }
-                    self.handle_keypress(key).await;
+                    self.handle_keypress(key);
                 }
                 InputEvent::Tick => {}
             }
         }
 
-        terminal.clear()?;
         crossterm::terminal::disable_raw_mode().unwrap();
+        terminal.clear()?;
         Ok(())
     }
 }

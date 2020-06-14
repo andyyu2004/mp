@@ -1,20 +1,25 @@
 pub(crate) mod tracklist;
 
 use super::{Key, UI};
+use crate::keymap;
 
-// can't get types to work out when the handlers are defined as methods on UI
-impl UI<'_> {
-    pub async fn handle_keypress(&mut self, key: Key) {
+pub(crate) trait Handler {}
+
+impl UI {
+    pub fn handle_keypress(&mut self, key: Key) {
         let handler = {
-            let client = self.client.lock().await;
+            let client = self.client.lock().unwrap();
             let keymap = &client.user_config.keymap;
             let region = self.uistate.focused_region;
-            match keymap.get(&(region, key)) {
+            let fname = match keymap.get(&(region, key)) {
+                Some(name) => name,
+                None => return warn!("unknown key combination {:?}", key),
+            };
+            debug!("fname: {}", fname);
+
+            match keymap::FMAP.get(fname) {
                 Some(f) => f,
-                None => {
-                    info!("unknown key combination {:?}", key);
-                    return;
-                }
+                None => return warn!("unknown function name `{}`", fname),
             }
         };
 

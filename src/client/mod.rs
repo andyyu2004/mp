@@ -1,36 +1,37 @@
 mod client_state;
-mod keymap;
+pub(crate) mod keymap;
 
+use crate::network::IOEvent;
+use crate::ClientResult;
 pub(crate) use client_state::ClientState;
 pub(crate) use keymap::KeyMap;
-
-use crate::ui::{Key, handlers, Region};
-use crate::{error::ClientResult, ui::UI, Connection};
-use mp_protocol::JoinedTrack;
-use std::{borrow::Borrow, collections::HashMap, hash::Hash};
+use std::sync::mpsc::Sender;
 
 #[derive(Default)]
 pub(crate) struct UserConfig {
     pub keymap: KeyMap,
 }
 
-pub(crate) struct Client<'a> {
+pub(crate) struct Client {
     pub state: ClientState,
-    pub connection: &'a mut Connection,
     pub user_config: UserConfig,
 }
 
-impl<'a> Client<'a> {
-    pub fn new(connection: &'a mut Connection) -> Self {
+impl Client {
+    pub fn new() -> Self {
         Self {
-            connection,
             user_config: UserConfig::default(),
             state: ClientState::default(),
         }
     }
 
     pub async fn init(&mut self) -> ClientResult<()> {
-        self.state.tracks = self.connection.fetch_tracks().await?;
+        //self.state.tracks = self.connection.fetch_tracks().await?;
+        Ok(())
+    }
+
+    pub async fn play_track(&mut self, track_id: i32) -> ClientResult<()> {
+        //self.connection.play_track(track_id).await?;
         Ok(())
     }
 }

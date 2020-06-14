@@ -1,15 +1,23 @@
-use std::hash::Hash;
+use crate::ui::{handlers, Key, Region, UI};
+use lazy_static::lazy_static;
 use std::borrow::Borrow;
-use crate::ui::{handlers, Key,Region, UI};
 use std::collections::HashMap;
+use std::hash::Hash;
 
-// can store this in json  later, map to function_name (str) instead.
-// then have another map from strings to functions
-pub(crate) type Handler = for<'r, 'b> fn(&'r mut UI<'b>);
-pub(crate) struct KeyMap(HashMap<(Region, Key), Handler>);
+lazy_static! {
+    /// map from strings to the function
+    pub(crate) static ref FMAP: HashMap<&'static str, Handler> = hashmap! {
+        "select_prev" => UI::handle_prev_track as Handler,
+        "select_next" => UI::handle_next_track,
+        "play_track" => UI::handle_play_track
+    };
+}
+
+pub(crate) type Handler = for<'r> fn(&'r mut UI);
+pub(crate) struct KeyMap(HashMap<(Region, Key), &'static str>);
 
 impl KeyMap {
-    pub fn get<Q>(&self, k: &Q) -> Option<Handler>
+    pub fn get<Q>(&self, k: &Q) -> Option<&str>
     where
         (Region, Key): Borrow<Q>,
         Q: Hash + Eq + ?Sized,
@@ -21,10 +29,10 @@ impl KeyMap {
 impl Default for KeyMap {
     fn default() -> Self {
         let map = hashmap! {
-            (Region::TrackList, Key::Char('j')) => handlers::tracklist::handle_next as Handler,
-            (Region::TrackList, Key::Char('k')) => handlers::tracklist::handle_prev as Handler
+            (Region::TrackList, Key::Char('j')) => "select_next",
+            (Region::TrackList, Key::Char('k')) => "select_prev",
+            (Region::TrackList, Key::Enter) => "play_track"
         };
         Self(map)
     }
 }
-

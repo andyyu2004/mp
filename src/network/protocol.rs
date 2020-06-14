@@ -1,4 +1,4 @@
-use crate::connection::Connection;
+use super::Connection;
 use mp_protocol::{JoinedTrack, ProtocolResult, Request, Response, RES_BUF_CAP};
 use std::path::Path;
 
@@ -27,6 +27,11 @@ impl Connection {
 
     pub(crate) async fn add_files(&mut self, files: Vec<&Path>) -> ProtocolResult<Response> {
         self.send_request(&Request::AddFile(files)).await?;
+        self.recv_response().await
+    }
+
+    pub async fn play_track(&mut self, track_id: i32) -> ProtocolResult<Response> {
+        self.send_request(&Request::PlayTrack(track_id)).await?;
         self.recv_response().await
     }
 }

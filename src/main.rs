@@ -3,18 +3,16 @@
 
 mod cli;
 mod client;
-mod connection;
 mod error;
-mod protocol;
+mod network;
 mod ui;
 
 use client::*;
-use connection::Connection;
 use error::*;
 use log::LevelFilter;
+use network::Connection;
 use std::path::Path;
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use std::sync::{mpsc, Arc, Mutex};
 use ui::*;
 
 #[macro_use]
@@ -27,7 +25,9 @@ extern crate log;
 async fn main() -> ClientResult<()> {
     let matches = cli::get_args();
 
-    let mut connection = Connection::new("/tmp/mp-client")?;
+    let (tx, rx) = mpsc::channel();
+    let client = Arc::new(Mutex::new(Client::new()));
+    let mut connection = Connection::new("/tmp/mp-client", Arc::clone(&client), rx)?;
 
     if let Some(matches) = matches.subcommand_matches("add") {
         let files: Vec<&str> = matches.values_of("FILES").unwrap().collect();
@@ -37,12 +37,15 @@ async fn main() -> ClientResult<()> {
     } else {
         // if no arguments were provided, start the ui
         simple_logging::log_to_file("log.log", LevelFilter::Trace)?;
-        let mut client = Client::new(&mut connection);
-        client.init().await?;
-        let client = Arc::new(Mutex::new(client));
-        let mut ui = UI::new(Arc::clone(&client));
-        ui.start().await?;
+        std::thread::spawn(move || io_main(connection));
+        let mut ui = UI::new(Arc::clone(&client), tx);
+        ui.start()?;
     }
 
     Ok(())
+}
+
+#[tokio::main]
+async fn io_main(mut connection: Connection) {
+    connection.listen().await.unwrap()
 }
