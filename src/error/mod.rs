@@ -1,3 +1,4 @@
+use crate::media::MediaError;
 use mp_protocol::{impl_from, util, ProtocolError};
 use std::fmt::{self, Display, Formatter};
 
@@ -9,9 +10,11 @@ impl_from!(ProtocolError, ServerError, ProtocolError);
 impl_from!(std::io::Error, ServerError, IOError);
 impl_from!(diesel::result::Error, ServerError, DbError);
 impl_from!(Vec<ServerError>, ServerError, Errors);
+impl_from!(MediaError, ServerError, MediaError);
 
 #[derive(Debug)]
 pub enum ServerError {
+    MediaError(MediaError),
     ProtocolError(ProtocolError),
     Errors(Vec<ServerError>),
     TagError(id3::Error),
@@ -23,6 +26,7 @@ pub enum ServerError {
 impl Display for ServerError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
+            Self::MediaError(err) => write!(f, "{:?}", err),
             Self::Errors(errors) => write!(f, "{}", util::join_display(errors, ",")),
             Self::TagError(err) => write!(f, "{}", err),
             Self::ProtocolError(err) => write!(f, "{}", err),

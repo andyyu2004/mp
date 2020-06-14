@@ -9,6 +9,39 @@ use std::path::PathBuf;
 pub trait Mpdb {}
 
 impl Database {
+    pub fn get_track(&self, target_track_id: i32) -> ServerResult<JoinedTrack> {
+        use super::schema::albums::columns::album_id;
+        use super::schema::artists::columns::artist_id;
+        use super::schema::{albums::dsl::*, artists::dsl::*, tracks::dsl::*};
+        Ok(tracks
+            .find(target_track_id)
+            .inner_join(albums)
+            .inner_join(
+                artists.on(super::schema::artists::columns::artist_id
+                    .eq(super::schema::albums::columns::artist_id)),
+            )
+            .select((
+                track_id,
+                title,
+                lyrics,
+                comments,
+                genre,
+                track_number,
+                path,
+                duration,
+                bitrate,
+                samplerate,
+                channels,
+                album_id,
+                album_title,
+                year,
+                total_tracks,
+                artist_id,
+                artist_name,
+            ))
+            .get_result(&self.connection)?)
+    }
+
     pub fn get_all(&self) -> ServerResult<Vec<JoinedTrack>> {
         use super::schema::albums::columns::album_id;
         use super::schema::artists::columns::artist_id;

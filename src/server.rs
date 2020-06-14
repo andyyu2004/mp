@@ -1,3 +1,4 @@
+use crate::media::Player;
 use crate::Database;
 use crate::ServerResult;
 use mp_protocol::{Request, Response, BUF_CAP};
@@ -8,13 +9,15 @@ use tokio::net::UnixDatagram;
 pub(crate) struct Server<'a> {
     socket: UnixDatagram,
     pub(crate) db: &'a mut Database,
+    pub(crate) player: &'a mut Player,
 }
 
 impl<'a> Server<'a> {
-    pub fn new(path: &str, db: &'a mut Database) -> io::Result<Self> {
+    pub fn new(path: &str, db: &'a mut Database, player: &'a mut Player) -> io::Result<Self> {
         Ok(Self {
             socket: UnixDatagram::bind(path)?,
             db,
+            player,
         })
     }
 
@@ -34,6 +37,8 @@ impl<'a> Server<'a> {
     pub async fn handle_request(&mut self, req: Request<'_>) -> Response {
         let res = match req {
             Request::AddFile(paths) => self.handle_add_files(&paths),
+            Request::FetchTracks => self.handle_fetch_tracks(),
+            Request::PlayTrack(track_id) => self.handle_play_track(track_id),
         };
 
         match res {

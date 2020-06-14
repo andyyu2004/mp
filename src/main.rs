@@ -1,6 +1,7 @@
 mod db;
 mod error;
-mod files;
+mod file;
+mod media;
 mod mp_server;
 mod server;
 
@@ -15,6 +16,7 @@ extern crate serde;
 
 use db::Database;
 use error::*;
+use media::Player;
 
 use server::Server;
 use std::io;
@@ -23,7 +25,8 @@ use std::io;
 async fn main() -> io::Result<()> {
     let path = "/tmp/mp-server";
     let mut db = Database::new();
-    let mut server = Server::new(path, &mut db)?;
+    let mut player = Player::new();
+    let mut server = Server::new(path, &mut db, &mut player)?;
     server.start().await;
     Ok(())
 }
