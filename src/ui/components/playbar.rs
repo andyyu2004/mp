@@ -31,26 +31,28 @@ impl Render for Playbar<'_> {
 
         let PlaybackState {
             progress,
-            duration,
             is_playing,
             curr_track,
         } = &state.playback_state;
-        let percentage = state.playback_state.progress * 100 / state.playback_state.duration;
 
-        let (title_text, subtext) = match curr_track {
+        let (title_text, subtext, duration) = match curr_track {
             Some(t) => (
                 t.title.as_str(),
                 format!("\n{} - {}", t.album_title, t.artist_name),
+                t.duration as i64 * 1000,
             ),
-            None => ("no track playing\n", String::new()),
+            None => ("no track playing\n", String::new(), 1),
         };
+
+        // sometimes the calculation can be a bit off due to rounding errors
+        let percentage = std::cmp::min(100, progress * 100 / duration);
 
         let text = [Text::raw(title_text), Text::raw(subtext)];
 
         let song_info = Paragraph::new(text.iter()).alignment(Alignment::Center);
 
         f.render_widget(song_info, layout[0]);
-        let duration_display = util::format_millis(*duration);
+        let duration_display = util::format_millis(duration);
         let progress_display = util::format_millis(*progress);
         let remaining_display = util::format_millis(duration - progress);
 

@@ -74,6 +74,6 @@ impl UI {
     }
 
     fn tick(&self) {
-        // self.io_tx.send(IOEvent::UpdatePlaybackStatus).unwrap();
+        self.io_tx.send(IOEvent::UpdatePlaybackStatus).unwrap();
     }
 }
