@@ -10,6 +10,7 @@ pub mod error;
 pub mod opcode;
 pub mod request;
 pub mod response;
+pub mod transmission;
 pub mod util;
 
 pub use constants::*;
@@ -19,6 +20,7 @@ pub use error::{ProtocolError, ProtocolResult};
 pub use opcode::Opcode;
 pub use request::*;
 pub use response::*;
+pub use transmission::*;
 
 #[cfg(test)]
 mod test {
