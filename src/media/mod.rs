@@ -6,4 +6,4 @@ mod player;
 pub(crate) use error::*;
 pub(crate) use event::*;
 pub(crate) use mpstate::MPState;
-pub(crate) use player::Player;
+pub(crate) use player::{MediaPlayerData, Player};

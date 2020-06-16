@@ -1,5 +1,7 @@
 use crate::file;
-use crate::{media::MediaEvent, Server, ServerResult};
+use crate::{
+    media::{MediaEvent, MediaPlayerData}, Server, ServerResult
+};
 use mp_protocol::Response;
 use std::path::Path;
 
@@ -19,9 +21,9 @@ impl Server {
     }
 
     pub(crate) fn handle_fetch_q(&mut self) -> ServerResult<Response> {
-        // let (hist, q) = self.player.getq();
-        // Ok(Response::Q(hist, q))
-        todo!()
+        // let (hist, q) = self.mp_state.lock().getq();
+        let (hist, q) = Default::default();
+        Ok(Response::Q(hist, q))
     }
 
     pub(crate) async fn handle_play_track(&mut self, track_id: i32) -> ServerResult<Response> {
@@ -36,9 +38,14 @@ impl Server {
         Ok(Response::Ok)
     }
 
-    pub(crate) fn handle_fetch_playback_state(&mut self) -> ServerResult<Response> {
-        todo!();
-        // Ok(Response::PlaybackState(self.player.get_status()))
+    pub(crate) async fn handle_fetch_playback_state(&mut self) -> ServerResult<Response> {
+        self.mp_tx.send(MediaEvent::PlaybackState).await.unwrap();
+        let playback_state = match self.server_rx.recv().await.unwrap() {
+            MediaPlayerData::PlaybackState(playback_state) => playback_state,
+            _ => unreachable!(),
+        };
+
+        Ok(Response::PlaybackState(playback_state))
     }
 
     pub(crate) async fn handle_pause_playback(&mut self) -> ServerResult<Response> {

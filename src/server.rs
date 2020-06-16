@@ -1,23 +1,32 @@
-use crate::media::{MediaEvent, Player};
+use crate::media::{MPState, MediaEvent, MediaPlayerData, Player};
 use crate::Database;
 use crate::ServerResult;
 use mp_protocol::{Request, Response, BUF_CAP};
 use std::convert::TryFrom;
 use std::io;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use tokio::net::{UnixListener, UnixStream};
-use tokio::sync::mpsc::Sender;
+use tokio::sync::mpsc::{Receiver, Sender};
+use tokio::sync::Mutex;
 
 pub(crate) struct Server {
     pub(crate) db: Database,
     pub(crate) mp_tx: Sender<MediaEvent>,
+    pub(crate) server_rx: Receiver<MediaPlayerData>,
+    pub(crate) mp_state: Arc<Mutex<MPState>>,
 }
 
 impl Server {
-    pub fn new(mp_tx: Sender<MediaEvent>) -> io::Result<Self> {
+    pub fn new(
+        mp_tx: Sender<MediaEvent>,
+        server_rx: Receiver<MediaPlayerData>,
+        mp_state: Arc<Mutex<MPState>>,
+    ) -> io::Result<Self> {
         Ok(Self {
             db: Database::new(),
             mp_tx,
+            server_rx,
+            mp_state,
         })
     }
 
@@ -27,7 +36,7 @@ impl Server {
             Request::FetchTracks => self.handle_fetch_tracks(),
             Request::PlayTrack(track_id) => self.handle_play_track(track_id).await,
             Request::QAppend(track_id) => self.handle_q_append(track_id),
-            Request::FetchPlaybackState => self.handle_fetch_playback_state(),
+            Request::FetchPlaybackState => self.handle_fetch_playback_state().await,
             Request::PausePlayback => self.handle_pause_playback().await,
             Request::ResumePlayback => self.handle_resume_playback().await,
             Request::TogglePlay => self.handle_toggle_play().await,

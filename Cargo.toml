@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 # mp-protocol = { git = "ssh://git@gitlab.com/andyyu2004/mp-protocol.git" }
 vlc-rs = "0.3.0"
+futures = "0.3.5"
 lazy_static = "1.4.0"
 maplit = "1"
 mp-protocol = { path = "../mp-protocol" }

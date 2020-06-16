@@ -1,3 +1,6 @@
+#![allow(unused_import)]
+#![allow(dead_code)]
+
 mod db;
 mod error;
 mod file;
@@ -10,10 +13,8 @@ extern crate diesel;
 
 #[macro_use]
 extern crate serde;
-
 // mpris
 // mpris-listen
-
 use db::Database;
 use error::*;
 use media::MPState;
@@ -31,19 +32,19 @@ use tokio::sync::mpsc;
 
 #[tokio::main]
 async fn main() -> ServerResult<()> {
-    let (tx, rx) = mpsc::channel(1);
-    let mpstate = Arc::new(Mutex::new(MPState::default()));
-    let mut player = Player::new(rx, Arc::clone(&mpstate));
+    let (media_tx, media_rx) = mpsc::channel(1);
+    let (server_tx, server_rx) = mpsc::channel(1);
+    let mpstate = Arc::new(tokio::sync::Mutex::new(MPState::default()));
+    let mut player = Player::new(media_tx.clone(), media_rx, server_tx, Arc::clone(&mpstate));
 
     // as player is not Send due to vlc just communicate with it using mpsc
-    // let vlc_event_handler = MediaEventHandler::new(mpstate, rx);
-    // std::thread::spawn(move || vlc_event_handler.listen());
-
     // we execute the server on another thread as the player is not send
-    let mut server = Arc::new(tokio::sync::Mutex::new(Server::new(tx)?));
+    let server = Arc::new(tokio::sync::Mutex::new(Server::new(
+        media_tx, server_rx, mpstate,
+    )?));
     std::thread::spawn(move || listen(server));
 
-    player.listen().await?;
+    player.listen().await;
 
     Ok(())
 }

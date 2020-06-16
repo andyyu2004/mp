@@ -8,6 +8,8 @@ pub(crate) enum MediaEvent {
     Pause,
     Resume,
     TogglePlay,
+    PlayNext,
+    PlaybackState,
     PlayTrack(JoinedTrack),
 }
 

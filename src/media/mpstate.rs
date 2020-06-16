@@ -4,10 +4,13 @@ use std::collections::VecDeque;
 pub(crate) struct MPState {
     queue: VecDeque<JoinedTrack>,
     history: Vec<JoinedTrack>,
+    /// progress of the current track
+    progress: i64,
+    is_playing: bool,
 }
 
 impl MPState {
-    pub fn current_track(&self) -> Option<&JoinedTrack> {
+    pub fn curr_track(&self) -> Option<&JoinedTrack> {
         self.queue.get(0)
     }
 
@@ -32,8 +35,10 @@ impl MPState {
 impl Default for MPState {
     fn default() -> Self {
         Self {
-            queue: VecDeque::new(),
-            history: Vec::new(),
+            queue: VecDeque::default(),
+            history: Vec::default(),
+            progress: i64::default(),
+            is_playing: bool::default(),
         }
     }
 }
