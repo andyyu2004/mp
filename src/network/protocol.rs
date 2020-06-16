@@ -1,12 +1,17 @@
 use super::{Connection, IOEvent};
-use mp_protocol::{ProtocolResult, Request, Response, RES_BUF_CAP};
+use mp_protocol::FIN_BYTES;
+use mp_protocol::{ProtocolResult, Request, Response};
 use std::path::Path;
 
 impl Connection {
+    pub async fn close(&mut self) -> ProtocolResult<()> {
+        self.send(&FIN_BYTES).await?;
+        Ok(())
+    }
+
     pub async fn recv_response(&mut self) -> ProtocolResult<Response> {
-        let mut buf = vec![0u8; RES_BUF_CAP];
-        let count = self.recv(&mut buf).await?;
-        let response = serde_json::from_slice::<Response>(&buf[..count])?;
+        let buf = self.recv().await?;
+        let response = serde_json::from_slice::<Response>(&buf)?;
         Ok(response)
     }
 

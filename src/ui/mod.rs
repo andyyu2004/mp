@@ -68,11 +68,12 @@ impl UI {
         }
 
         crossterm::terminal::disable_raw_mode().unwrap();
+        self.dispatch(IOEvent::Terminate);
         terminal.clear()?;
         Ok(())
     }
 
     fn tick(&self) {
-        self.io_tx.send(IOEvent::UpdatePlaybackStatus).unwrap();
+        // self.io_tx.send(IOEvent::UpdatePlaybackStatus).unwrap();
     }
 }

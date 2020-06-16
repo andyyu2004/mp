@@ -5,60 +5,65 @@ use std::io;
 use std::path::Path;
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
-use tokio::net::UnixDatagram;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::UnixStream;
 
 pub(crate) struct Connection {
-    socket: UnixDatagram,
-    rx: Receiver<IOEvent>,
+    socket: UnixStream,
     pub(crate) tx: Sender<IOEvent>,
+    rx: Receiver<IOEvent>,
     pub(crate) client: Arc<Mutex<Client>>,
 }
 
 impl Connection {
-    pub fn new(
+    pub async fn new(
         path: impl AsRef<Path>,
         client: Arc<Mutex<Client>>,
-        rx: Receiver<IOEvent>,
         tx: Sender<IOEvent>,
+        rx: Receiver<IOEvent>,
     ) -> io::Result<Self> {
-        let socket = UnixDatagram::bind(path)?;
-        socket.connect("/tmp/mp-server")?;
+        let socket = UnixStream::connect(path).await?;
         Ok(Self {
             socket,
-            rx,
             client,
             tx,
+            rx,
         })
     }
 
     pub async fn listen(&mut self) -> ProtocolResult<()> {
         while let Ok(event) = self.rx.recv() {
-            self.handle_io_event(event).await?;
+            match event {
+                IOEvent::UpdatePlaybackStatus => self.dispatch_fetch_playback_state().await,
+                IOEvent::InitClient => self.init_client().await,
+                IOEvent::PlayTrack(track_id) => Ok(self.dispatch_play_track(track_id).await?),
+                IOEvent::QueueAppend(track_id) => Ok(self.dispatch_queue_append(track_id).await?),
+                IOEvent::TogglePlay => Ok(self.dispatch_toggle_play().await?),
+                IOEvent::Terminate => {
+                    self.close().await?;
+                    break;
+                }
+                IOEvent::FetchQ => Ok(self.dispatch_fetch_q().await?),
+            }?;
         }
         Ok(())
     }
 
-    async fn handle_io_event(&mut self, event: IOEvent) -> ProtocolResult<()> {
-        match event {
-            IOEvent::UpdatePlaybackStatus => self.dispatch_fetch_playback_state().await,
-            IOEvent::InitClient => self.init_client().await,
-            IOEvent::PlayTrack(track_id) => Ok(self.dispatch_play_track(track_id).await?),
-            IOEvent::QueueAppend(track_id) => Ok(self.dispatch_queue_append(track_id).await?),
-            IOEvent::TogglePlay => Ok(self.dispatch_toggle_play().await?),
-            IOEvent::FetchQ => Ok(self.dispatch_fetch_q().await?),
-        }
-    }
-
     pub async fn init_client(&mut self) -> ProtocolResult<()> {
+        trace!("init_client");
         self.dispatch_fetch_tracks().await
     }
 
     pub async fn send(&mut self, bytes: &[u8]) -> io::Result<()> {
-        self.socket.send(bytes).await?;
+        self.socket.write_u32(bytes.len() as u32).await?;
+        self.socket.write_all(bytes).await?;
         Ok(())
     }
 
-    pub async fn recv(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.socket.recv(buf).await
+    pub async fn recv(&mut self) -> io::Result<Vec<u8>> {
+        let msg_len = self.socket.read_u32().await? as usize;
+        let mut buf = vec![0u8; msg_len];
+        self.socket.read_exact(&mut buf).await?;
+        Ok(buf)
     }
 }

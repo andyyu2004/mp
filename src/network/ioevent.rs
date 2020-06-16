@@ -1,4 +1,6 @@
 pub(crate) enum IOEvent {
+    // terminate connection to server
+    Terminate,
     InitClient,
     FetchQ,
     UpdatePlaybackStatus,

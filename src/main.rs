@@ -1,6 +1,3 @@
-#![feature(type_alias_impl_trait)]
-#![feature(stmt_expr_attributes)]
-
 mod cli;
 mod client;
 mod error;
@@ -28,7 +25,8 @@ async fn main() -> ClientResult<()> {
 
     let (tx, rx) = mpsc::channel();
     let client = Arc::new(Mutex::new(Client::new()));
-    let mut connection = Connection::new("/tmp/mp-client", Arc::clone(&client), rx, tx.clone())?;
+    let mut connection =
+        Connection::new("/tmp/mp-server", Arc::clone(&client), tx.clone(), rx).await?;
 
     if let Some(matches) = matches.subcommand_matches("add") {
         let files: Vec<&str> = matches.values_of("FILES").unwrap().collect();
@@ -48,15 +46,18 @@ async fn main() -> ClientResult<()> {
     } else {
         // if no arguments were provided, start the ui
         simple_logging::log_to_file("log.log", LevelFilter::Trace)?;
-        std::thread::spawn(move || io_main(connection));
+        let io_handle = std::thread::spawn(move || io_main(connection));
         let mut ui = UI::new(Arc::clone(&client), tx);
         ui.start()?;
+        io_handle.join().unwrap();
+        return Ok(());
     }
 
+    connection.close().await?;
     Ok(())
 }
 
 #[tokio::main]
 async fn io_main(mut connection: Connection) {
-    connection.listen().await.unwrap()
+    connection.listen().await.unwrap();
 }
