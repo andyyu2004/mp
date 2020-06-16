@@ -1,50 +1,36 @@
-use crate::media::Player;
+use crate::media::{MediaEvent, Player};
 use crate::Database;
 use crate::ServerResult;
 use mp_protocol::{Request, Response, BUF_CAP};
 use std::convert::TryFrom;
 use std::io;
 use std::sync::{Arc, Mutex};
-use tokio::net::UnixDatagram;
+use tokio::net::{UnixListener, UnixStream};
+use tokio::sync::mpsc::Sender;
 
-pub(crate) struct Server<'a> {
-    socket: UnixDatagram,
-    pub(crate) db: &'a mut Database,
-    pub(crate) player: Player,
+pub(crate) struct Server {
+    pub(crate) db: Database,
+    pub(crate) mp_tx: Sender<MediaEvent>,
 }
 
-impl<'a> Server<'a> {
-    pub fn new(path: &str, db: &'a mut Database, player: Player) -> io::Result<Self> {
+impl Server {
+    pub fn new(mp_tx: Sender<MediaEvent>) -> io::Result<Self> {
         Ok(Self {
-            socket: UnixDatagram::bind(path)?,
-            db,
-            player,
+            db: Database::new(),
+            mp_tx,
         })
-    }
-
-    async fn listen(&mut self) -> ServerResult<()> {
-        let mut buf = vec![0; BUF_CAP];
-        let (count, addr) = self.socket.recv_from(&mut buf).await?;
-        let addr = addr.as_pathname().unwrap();
-
-        let req = Request::try_from(&buf[..count])?;
-
-        let res = self.handle_request(req).await;
-        let bytes = serde_json::to_vec(&res).unwrap();
-        self.socket.send_to(&bytes, addr).await?;
-        Ok(())
     }
 
     pub async fn handle_request(&mut self, req: Request<'_>) -> Response {
         let res = match req {
             Request::AddFile(paths) => self.handle_add_files(&paths),
             Request::FetchTracks => self.handle_fetch_tracks(),
-            Request::PlayTrack(track_id) => self.handle_play_track(track_id),
+            Request::PlayTrack(track_id) => self.handle_play_track(track_id).await,
             Request::QAppend(track_id) => self.handle_q_append(track_id),
             Request::FetchPlaybackState => self.handle_fetch_playback_state(),
-            Request::PausePlayback => self.handle_pause_playback(),
-            Request::ResumePlayback => self.handle_resume_playback(),
-            Request::TogglePlay => self.handle_toggle_play(),
+            Request::PausePlayback => self.handle_pause_playback().await,
+            Request::ResumePlayback => self.handle_resume_playback().await,
+            Request::TogglePlay => self.handle_toggle_play().await,
             Request::FetchQ => self.handle_fetch_q(),
         };
 
@@ -55,15 +41,5 @@ impl<'a> Server<'a> {
                 Response::Error
             }
         }
-    }
-
-    pub async fn start(&mut self) -> ! {
-        loop {
-            if let Err(err) = self.listen().await {
-                println!("err: {:?}", err)
-            }
-        }
-
-        // std::fs::remove_file(path)
     }
 }

@@ -9,6 +9,6 @@ pub struct Artist {
 
 #[derive(Insertable)]
 #[table_name = "artists"]
-pub struct InsertableArtist<'a> {
-    pub artist_name: &'a str,
+pub struct InsertableArtist {
+    pub artist_name: String,
 }

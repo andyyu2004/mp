@@ -71,12 +71,8 @@ impl Database {
         Ok(joined_tracks)
     }
 
-    pub fn insert_files(
-        &mut self,
-        data: &Vec<(PathBuf, id3::Tag, taglib::File)>,
-    ) -> ServerResult<()> {
-        for (path, tag, file) in data {
-            let entry = InsertionEntry::from((path.as_path(), tag, file.audioproperties()?));
+    pub fn insert_files(&mut self, entries: Vec<InsertionEntry>) -> ServerResult<()> {
+        for entry in entries {
             let InsertionEntry {
                 artist,
                 album,
@@ -98,6 +94,7 @@ impl Database {
         track_album_id: i32,
     ) -> ServerResult<Track> {
         use super::schema::tracks::dsl::*;
+        dbg!("inserting {}", &insertable_track.path);
         let predicate = title
             .eq(&insertable_track.title)
             .and(album_id.eq(track_album_id));

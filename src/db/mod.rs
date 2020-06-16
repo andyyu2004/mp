@@ -10,7 +10,7 @@ use dotenv::dotenv;
 
 pub use album::*;
 pub use artist::*;
-use entry::*;
+pub use entry::*;
 
 pub use track::*;
 

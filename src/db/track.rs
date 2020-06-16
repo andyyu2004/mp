@@ -21,15 +21,15 @@ pub struct Track {
 
 #[derive(Debug, Insertable)]
 #[table_name = "tracks"]
-pub struct InsertableTrack<'a> {
-    pub title: &'a str,
+pub struct InsertableTrack {
+    pub title: String,
     pub album_id: i32,
-    pub lyrics: &'a str,
+    pub lyrics: String,
     pub comments: String,
-    pub genre: &'a str,
+    pub genre: String,
     pub track_number: Option<i32>,
     //pictures: Vec<&'a id3::frame::Picture>,
-    pub path: &'a str,
+    pub path: String,
     pub duration: i32,
     pub bitrate: i32,
     pub samplerate: i32,

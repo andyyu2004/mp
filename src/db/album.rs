@@ -12,8 +12,8 @@ pub struct Album {
 
 #[derive(Insertable)]
 #[table_name = "albums"]
-pub struct InsertableAlbum<'a> {
-    pub album_title: &'a str,
+pub struct InsertableAlbum {
+    pub album_title: String,
     pub artist_id: i32,
     pub year: Option<i32>,
     pub total_tracks: Option<i32>,

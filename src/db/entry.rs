@@ -7,26 +7,28 @@ const UNKNOWN_ARTIST: &str = "unknown artist";
 const UNKNOWN_GENRE: &str = "unknown genre";
 
 /// wrapper for artist, album, track
-pub(crate) struct InsertionEntry<'a> {
-    pub track: InsertableTrack<'a>,
-    pub album: InsertableAlbum<'a>,
-    pub artist: InsertableArtist<'a>,
+pub struct InsertionEntry {
+    pub track: InsertableTrack,
+    pub album: InsertableAlbum,
+    pub artist: InsertableArtist,
 }
 
-impl<'a> From<(&'a Path, &'a id3::Tag, taglib::AudioProperties<'a>)> for InsertionEntry<'a> {
-    fn from(
-        (path, tag, properties): (&'a Path, &'a id3::Tag, taglib::AudioProperties<'a>),
-    ) -> Self {
-        let title = tag.title().unwrap_or(UNKNOWN_TITLE);
-        let album_title = tag.album().unwrap_or(UNKNOWN_ALBUM);
-        let artist_name = tag.artist().unwrap_or(UNKNOWN_ARTIST);
-        let genre = tag.genre().unwrap_or(UNKNOWN_GENRE);
+impl From<(&Path, &id3::Tag, taglib::AudioProperties<'_>)> for InsertionEntry {
+    fn from((path, tag, properties): (&Path, &id3::Tag, taglib::AudioProperties<'_>)) -> Self {
+        let title = tag.title().unwrap_or(UNKNOWN_TITLE).to_owned();
+        let album_title = tag.album().unwrap_or(UNKNOWN_ALBUM).to_owned();
+        let artist_name = tag.artist().unwrap_or(UNKNOWN_ARTIST).to_owned();
+        let genre = tag.genre().unwrap_or(UNKNOWN_GENRE).to_owned();
         let lyrics = tag
             .lyrics()
             .next()
             .map(|lyrics| lyrics.description.as_str())
-            .unwrap_or("");
-        let comments: Vec<&str> = tag.comments().map(|c| c.description.as_str()).collect();
+            .unwrap_or("")
+            .to_owned();
+        let comments: Vec<String> = tag
+            .comments()
+            .map(|c| c.description.as_str().to_owned())
+            .collect();
         let comments = comments.join(";");
         let track_number = tag.track().map(|i| i as i32);
         let year = tag.year().map(|i| i as i32);
@@ -39,7 +41,7 @@ impl<'a> From<(&'a Path, &'a id3::Tag, taglib::AudioProperties<'a>)> for Inserti
         let bitrate = properties.bitrate() as i32;
         let samplerate = properties.samplerate() as i32;
         let channels = properties.channels() as i32;
-        let path = path.to_str().unwrap();
+        let path = path.to_str().unwrap().to_owned();
 
         // make sure to set the artist_id properly later
         let album = InsertableAlbum {

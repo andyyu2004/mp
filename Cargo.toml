@@ -9,6 +9,8 @@ edition = "2018"
 [dependencies]
 # mp-protocol = { git = "ssh://git@gitlab.com/andyyu2004/mp-protocol.git" }
 vlc-rs = "0.3.0"
+lazy_static = "1.4.0"
+maplit = "1"
 mp-protocol = { path = "../mp-protocol" }
 diesel = { version = "1", features = ["sqlite"] }
 serde = { version = "1", features = ["derive"] }

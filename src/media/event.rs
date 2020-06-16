@@ -1,7 +1,17 @@
 use super::MPState;
+use mp_protocol::JoinedTrack;
 use std::sync::{mpsc::Receiver, Arc, Mutex};
 use vlc::{Event, EventType, VLCObject};
 
+#[derive(Debug)]
+pub(crate) enum MediaEvent {
+    Pause,
+    Resume,
+    TogglePlay,
+    PlayTrack(JoinedTrack),
+}
+
+// vlc event handler
 pub(crate) struct MediaEventHandler {
     mp_state: Arc<Mutex<MPState>>,
     rx: Receiver<vlc::Event>,
