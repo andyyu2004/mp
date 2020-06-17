@@ -6,8 +6,9 @@ pub(crate) enum IOEvent {
     UpdatePlaybackStatus,
     PlayPrev,
     PlayNext,
-    PlayTrack(i32),
     TogglePlay,
+    ShuffleAll,
+    PlayTrack(i32),
     QueueAppend(i32),
     SetNextTrack(i32),
 }

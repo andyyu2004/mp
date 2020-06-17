@@ -14,6 +14,10 @@ impl UI {
         self.dispatch(IOEvent::PlayPrev)
     }
 
+    pub(crate) fn handle_shuffle_all(&mut self) {
+        self.dispatch(IOEvent::ShuffleAll)
+    }
+
     pub(crate) fn handle_play_next(&mut self) {
         self.dispatch(IOEvent::PlayNext)
     }

@@ -25,4 +25,7 @@ impl UI {
 
         handler(self)
     }
+
+    pub fn handle_enter_command(&mut self) {
+    }
 }

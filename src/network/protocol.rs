@@ -50,6 +50,10 @@ impl Connection {
         Ok(())
     }
 
+    pub async fn dispatch_shuffle_all(&mut self) -> ProtocolResult<()> {
+        self.dispatch(&Request::ShuffleAll).await
+    }
+
     pub async fn dispatch_play_prev(&mut self) -> ProtocolResult<()> {
         self.dispatch(&Request::PlayPrev).await
     }

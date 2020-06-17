@@ -39,14 +39,15 @@ impl Connection {
                 IOEvent::PlayTrack(track_id) => Ok(self.dispatch_play_track(track_id).await?),
                 IOEvent::QueueAppend(track_id) => Ok(self.dispatch_queue_append(track_id).await?),
                 IOEvent::TogglePlay => Ok(self.dispatch_toggle_play().await?),
-                IOEvent::Terminate => {
-                    self.close().await?;
-                    break;
-                }
                 IOEvent::FetchQ => Ok(self.dispatch_fetch_q().await?),
                 IOEvent::PlayPrev => Ok(self.dispatch_play_prev().await?),
                 IOEvent::PlayNext => Ok(self.dispatch_play_next().await?),
                 IOEvent::SetNextTrack(track_id) => Ok(self.dispatch_set_next_track(track_id).await?),
+                IOEvent::ShuffleAll => Ok(self.dispatch_shuffle_all().await?),
+                IOEvent::Terminate => {
+                    self.close().await?;
+                    break;
+                }
             }?;
         }
         Ok(())

@@ -14,6 +14,8 @@ lazy_static! {
         "queue_append" => UI::handle_queue_append,
         "play_prev" => UI::handle_play_prev,
         "play_next" => UI::handle_play_next,
+        "shuffle_all" => UI::handle_shuffle_all,
+        "enter_command" => UI::handle_enter_command,
     };
 }
 
@@ -40,6 +42,8 @@ impl Default for KeyMap {
             (Region::TrackList, Key::Ctrl('q')) => "queue_append",
             (Region::TrackList, Key::Ctrl('f')) => "play_next",
             (Region::TrackList, Key::Ctrl('s')) => "play_prev",
+            (Region::TrackList, Key::Alt('s')) => "shuffle_all",
+            (Region::TrackList, Key::Ctrl(':')) => "enter_command",
         };
         Self(map)
     }
