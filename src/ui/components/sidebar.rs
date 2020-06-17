@@ -1,5 +1,5 @@
 use crate::ui::render::Render;
-use tui::layout::{Constraint, Direction, Layout};
+use tui::layout::{Constraint, Corner, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::*;
 
@@ -10,12 +10,14 @@ impl Render for Sidebar {
     where
         B: tui::backend::Backend,
     {
-        let hist = state.history.iter().map(|t| Text::raw(&t.title));
+        // we reverse it so the history_widget renders it in the way we intend
+        let hist = state.history.iter().map(|t| Text::raw(&t.title)).rev();
 
         let hist_widget = List::new(hist)
             .block(Block::default().title("history").borders(Borders::ALL))
             .style(Style::default().fg(Color::White))
             .highlight_style(Style::default().modifier(Modifier::ITALIC))
+            .start_corner(Corner::BottomLeft)
             .highlight_symbol(">>");
 
         let q = state.queue.iter().map(|t| Text::raw(&t.title));
