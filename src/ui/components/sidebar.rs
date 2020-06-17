@@ -6,12 +6,8 @@ use tui::widgets::*;
 pub(crate) struct Sidebar;
 
 impl Render for Sidebar {
-    fn render<B>(
-        &mut self,
-        f: &mut tui::Frame<B>,
-        rect: tui::layout::Rect,
-        state: &crate::ClientState,
-    ) where
+    fn render<B>(&mut self, f: &mut tui::Frame<B>, rect: tui::layout::Rect, state: &crate::ClientState)
+    where
         B: tui::backend::Backend,
     {
         let hist = state.history.iter().map(|t| Text::raw(&t.title));

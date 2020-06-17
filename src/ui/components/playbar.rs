@@ -16,12 +16,8 @@ impl<'a> Playbar<'a> {
 }
 
 impl Render for Playbar<'_> {
-    fn render<B>(
-        &mut self,
-        f: &mut tui::Frame<B>,
-        rect: tui::layout::Rect,
-        state: &crate::ClientState,
-    ) where
+    fn render<B>(&mut self, f: &mut tui::Frame<B>, rect: tui::layout::Rect, state: &crate::ClientState)
+    where
         B: tui::backend::Backend,
     {
         let layout = Layout::default()
@@ -38,7 +34,7 @@ impl Render for Playbar<'_> {
         let (title_text, subtext, duration) = match curr_track {
             Some(t) => (
                 t.title.as_str(),
-                format!("\n{} - {}", t.album_title, t.artist_name),
+                format!("\n{} - {}", t.artist_name, t.album_title),
                 t.duration as i64 * 1000,
             ),
             None => ("no track playing\n", String::new(), 1),
@@ -47,11 +43,14 @@ impl Render for Playbar<'_> {
         // sometimes the calculation can be a bit off due to rounding errors
         let percentage = std::cmp::min(100, progress * 100 / duration);
 
-        let text = [Text::raw(title_text), Text::raw(subtext)];
-
+        let text = [
+            Text::styled(title_text, Style::default().modifier(Modifier::BOLD)),
+            Text::raw(subtext),
+        ];
         let song_info = Paragraph::new(text.iter()).alignment(Alignment::Center);
 
         f.render_widget(song_info, layout[0]);
+
         let duration_display = util::format_millis(duration);
         let progress_display = util::format_millis(*progress);
         let remaining_display = util::format_millis(duration - progress);

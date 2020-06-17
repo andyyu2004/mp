@@ -14,12 +14,8 @@ impl<'a> Content<'a> {
 }
 
 impl Render for Content<'_> {
-    fn render<B>(
-        &mut self,
-        f: &mut tui::Frame<B>,
-        rect: tui::layout::Rect,
-        state: &crate::ClientState,
-    ) where
+    fn render<B>(&mut self, f: &mut tui::Frame<B>, rect: tui::layout::Rect, state: &crate::ClientState)
+    where
         B: tui::backend::Backend,
     {
         let items = state
@@ -27,9 +23,7 @@ impl Render for Content<'_> {
             .iter()
             .map(|t| {
                 [
-                    t.track_number
-                        .map(|x| x.to_string())
-                        .unwrap_or("".to_owned()),
+                    t.track_number.map(|x| x.to_string()).unwrap_or("".to_owned()),
                     t.title.to_owned(),
                     t.artist_name.to_owned(),
                     t.album_title.to_owned(),
@@ -51,11 +45,11 @@ impl Render for Content<'_> {
                 Constraint::Length(5),
                 Constraint::Length(10),
                 Constraint::Length(10),
-                Constraint::Length(10),
-                Constraint::Length(10),
+                Constraint::Length(20),
+                Constraint::Length(15),
                 Constraint::Length(10),
             ])
-            .column_spacing(3)
+            .column_spacing(1)
             .highlight_symbol(">>");
 
         f.render_stateful_widget(table, rect, &mut self.uistate.track_table_state);
