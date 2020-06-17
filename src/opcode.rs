@@ -18,6 +18,7 @@ pub enum Opcode {
     SetNxtTrk = 0x09,
     PlayPrv = 0x0A,
     PlayNxt = 0x0B,
+    ShuffleAll = 0x0C,
 }
 
 impl Opcode {

@@ -1,6 +1,6 @@
 use crate::decoding;
 use crate::{Decode, Decoder, Encode, Encoder, Encoding, Opcode, ProtocolError, ProtocolResult};
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryFrom;
 use std::path::Path;
 
 /// request is an enumeration of all requests that a client can send to the server
@@ -18,6 +18,7 @@ pub enum Request<'r> {
     TogglePlay,
     PlayPrev,
     PlayNext,
+    ShuffleAll,
 }
 
 /// implement decoding of a request from bytes of any encoding (encoding is encoded in the first byte of the buffer)
@@ -40,14 +41,15 @@ impl<'r> Encode for Request<'r> {
             Self::AddFile(paths) => encoder.encode_add_file(paths),
             Self::PlayTrack(track_id) => encoder.encode_f_track(Opcode::PlayTrk, *track_id),
             Self::QAppend(track_id) => encoder.encode_f_track(Opcode::QAppend, *track_id),
+            Self::SetNextTrack(track_id) => encoder.encode_f_track(Opcode::SetNxtTrk, *track_id),
             Self::FetchPlaybackState => encoder.encode_opcode(Opcode::FetchPlaybackState),
             Self::ResumePlayback => encoder.encode_opcode(Opcode::ResumePlayback),
             Self::PausePlayback => encoder.encode_opcode(Opcode::PausePlayback),
             Self::TogglePlay => encoder.encode_opcode(Opcode::TogglePlay),
             Self::FetchQ => encoder.encode_opcode(Opcode::QFetch),
-            Self::SetNextTrack(track_id) => encoder.encode_f_track(Opcode::SetNxtTrk, *track_id),
             Self::PlayPrev => encoder.encode_opcode(Opcode::PlayPrv),
             Self::PlayNext => encoder.encode_opcode(Opcode::PlayNxt),
+            Self::ShuffleAll => encoder.encode_opcode(Opcode::ShuffleAll),
         }
     }
 }
@@ -72,6 +74,7 @@ impl<'r> Decode<'r> for Request<'r> {
             Opcode::SetNxtTrk => Self::SetNextTrack(decoder.decode_i32(&buf)?),
             Opcode::PlayPrv => Self::PlayPrev,
             Opcode::PlayNxt => Self::PlayNext,
+            Opcode::ShuffleAll => Self::ShuffleAll,
         })
     }
 }
