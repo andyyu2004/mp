@@ -44,6 +44,7 @@ impl Server {
             Request::SetNextTrack(track_id) => self.handle_set_next_track(track_id).await,
             Request::PlayPrev => self.handle_play_prev().await,
             Request::PlayNext => self.handle_play_next().await,
+            Request::ShuffleAll => self.handle_shuffle_all().await,
         };
 
         match res {

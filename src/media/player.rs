@@ -66,6 +66,7 @@ impl Player {
                 MediaEventKind::PlayTrack(track) => self.play_immediate(track).await,
                 MediaEventKind::QAppend(track) => self.q_append(track).await,
                 MediaEventKind::PlayPrev => self.play_prev().await,
+                MediaEventKind::ShuffleAll(tracks) => self.shuffle_all(tracks).await,
                 MediaEventKind::SetNextTrack(_) => {}
                 MediaEventKind::None => {}
             };
@@ -76,6 +77,14 @@ impl Player {
                 MediaResponseKind::Q => self.send_q().await,
             };
         }
+    }
+
+    /// sets the queue to be a random permutation of the tracks passed in
+    /// history remains unchanged
+    pub async fn shuffle_all(&mut self, tracks: Vec<JoinedTrack>) {
+        let mut state = self.state.lock().await;
+        let track = state.shuffle_all(tracks);
+        track.map(|t| self.play_track(t));
     }
 
     /// stops any other playback and immediately plays the specified track

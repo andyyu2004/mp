@@ -83,6 +83,13 @@ impl Server {
         self.listen_rx().await
     }
 
+    pub(crate) async fn handle_shuffle_all(&mut self) -> ServerResult<Response> {
+        let tracks = self.db.get_all()?;
+        let event = MediaEvent::new(MediaResponseKind::Q, MediaEventKind::ShuffleAll(tracks));
+        self.mp_tx.send(event).await.unwrap();
+        self.listen_rx().await
+    }
+
     pub(crate) async fn handle_set_next_track(&mut self, track_id: i32) -> ServerResult<Response> {
         let track = self.db.get_track(track_id)?;
         let event = MediaEvent::new(MediaResponseKind::Q, MediaEventKind::SetNextTrack(track));

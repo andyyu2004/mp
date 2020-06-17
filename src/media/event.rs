@@ -35,6 +35,7 @@ pub(crate) enum MediaEventKind {
     TogglePlay,
     PlayPrev,
     PlayNext,
+    ShuffleAll(Vec<JoinedTrack>),
     PlayTrack(JoinedTrack),
     QAppend(JoinedTrack),
     SetNextTrack(JoinedTrack),

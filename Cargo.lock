@@ -491,6 +491,7 @@ dependencies = [
  "lazy_static",
  "maplit",
  "mp-protocol",
+ "rand",
  "serde",
  "serde_json",
  "taglib",

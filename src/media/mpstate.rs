@@ -1,4 +1,5 @@
 use mp_protocol::JoinedTrack;
+use rand::seq::SliceRandom;
 use std::collections::VecDeque;
 
 pub(crate) struct MPState {
@@ -22,10 +23,22 @@ impl MPState {
         self.queue.push_back(track)
     }
 
+    /// shuffles the given vector and returns a reference of the first track to be played
+    pub fn shuffle_all(&mut self, mut tracks: Vec<JoinedTrack>) -> Option<&JoinedTrack> {
+        let mut rng = rand::thread_rng();
+        tracks.shuffle(&mut rng);
+        self.queue = VecDeque::from(tracks);
+        self.peek_q()
+    }
+
+    pub fn peek_q(&self) -> Option<&JoinedTrack> {
+        self.queue.get(0)
+    }
+
     pub fn play_prev(&mut self) -> Option<&JoinedTrack> {
         let last_played = self.history.pop()?;
         self.queue.push_front(last_played);
-        self.queue.get(0)
+        self.peek_q()
     }
 
     /// mutates the queue and history and returns the new track
@@ -35,7 +48,7 @@ impl MPState {
         }
         let played = self.queue.pop_front()?;
         self.history.push(played);
-        self.queue.get(0)
+        self.peek_q()
     }
 
     pub fn getq(&self) -> (&Vec<JoinedTrack>, &VecDeque<JoinedTrack>) {
