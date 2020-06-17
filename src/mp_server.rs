@@ -1,7 +1,6 @@
 use crate::file;
-use crate::{
-    media::{MediaEvent, MediaPlayerData}, Server, ServerResult
-};
+use crate::media::*;
+use crate::{Server, ServerResult};
 use mp_protocol::Response;
 use std::path::Path;
 
@@ -20,48 +19,75 @@ impl Server {
         Ok(Response::Tracks(self.db.get_all()?))
     }
 
-    pub(crate) fn handle_fetch_q(&mut self) -> ServerResult<Response> {
-        // let (hist, q) = self.mp_state.lock().getq();
-        let (hist, q) = Default::default();
-        Ok(Response::Q(hist, q))
+    pub(crate) async fn handle_fetch_q(&mut self) -> ServerResult<Response> {
+        let state = self.mp_state.lock().await;
+        let (hist, q) = state.getq();
+        Ok(Response::Q(hist.to_vec(), q.to_owned()))
     }
 
     pub(crate) async fn handle_play_track(&mut self, track_id: i32) -> ServerResult<Response> {
         let track = self.db.get_track(track_id)?;
-        self.mp_tx.send(MediaEvent::PlayTrack(track)).await.unwrap();
-        Ok(Response::Ok)
+        let event = MediaEvent::new(MediaResponseKind::Q, MediaEventKind::PlayTrack(track));
+        self.mp_tx.send(event).await.unwrap();
+        self.listen_rx().await
     }
 
-    pub(crate) fn handle_q_append(&mut self, track_id: i32) -> ServerResult<Response> {
+    pub(crate) async fn handle_q_append(&mut self, track_id: i32) -> ServerResult<Response> {
         let track = self.db.get_track(track_id)?;
-        // self.player.q_append(track);
-        Ok(Response::Ok)
+        let event = MediaEvent::new(MediaResponseKind::Q, MediaEventKind::QAppend(track));
+        self.mp_tx.send(event).await.unwrap();
+        self.listen_rx().await
+    }
+
+    /// listens for a response from the player
+    async fn listen_rx(&mut self) -> ServerResult<Response> {
+        match self.server_rx.recv().await.unwrap() {
+            MediaPlayerData::Q(q, hist) => Ok(Response::Q(q, hist)),
+            MediaPlayerData::PlaybackState(state) => Ok(Response::PlaybackState(state)),
+        }
     }
 
     pub(crate) async fn handle_fetch_playback_state(&mut self) -> ServerResult<Response> {
-        self.mp_tx.send(MediaEvent::PlaybackState).await.unwrap();
-        let playback_state = match self.server_rx.recv().await.unwrap() {
-            MediaPlayerData::PlaybackState(playback_state) => playback_state,
-            _ => unreachable!(),
-        };
-
-        Ok(Response::PlaybackState(playback_state))
+        let event = MediaEvent::new(MediaResponseKind::PlaybackState, MediaEventKind::None);
+        self.mp_tx.send(event).await.unwrap();
+        self.listen_rx().await
     }
 
     pub(crate) async fn handle_pause_playback(&mut self) -> ServerResult<Response> {
-        self.mp_tx.send(MediaEvent::Pause).await.unwrap();
+        let event = MediaEvent::new(MediaResponseKind::None, MediaEventKind::Pause);
+        self.mp_tx.send(event).await.unwrap();
         Ok(Response::Ok)
     }
 
     pub(crate) async fn handle_toggle_play(&mut self) -> ServerResult<Response> {
-        self.mp_tx.send(MediaEvent::TogglePlay).await.unwrap();
+        let event = MediaEvent::new(MediaResponseKind::None, MediaEventKind::TogglePlay);
+        self.mp_tx.send(event).await.unwrap();
         Ok(Response::Ok)
     }
 
     pub(crate) async fn handle_resume_playback(&mut self) -> ServerResult<Response> {
-        // self.player.resume();
-        self.mp_tx.send(MediaEvent::Resume).await.unwrap();
+        let event = MediaEvent::new(MediaResponseKind::None, MediaEventKind::Resume);
+        self.mp_tx.send(event).await.unwrap();
         Ok(Response::Ok)
+    }
+
+    pub(crate) async fn handle_play_prev(&mut self) -> ServerResult<Response> {
+        let event = MediaEvent::new(MediaResponseKind::Q, MediaEventKind::PlayPrev);
+        self.mp_tx.send(event).await.unwrap();
+        self.listen_rx().await
+    }
+
+    pub(crate) async fn handle_play_next(&mut self) -> ServerResult<Response> {
+        let event = MediaEvent::new(MediaResponseKind::Q, MediaEventKind::PlayNext);
+        self.mp_tx.send(event).await.unwrap();
+        self.listen_rx().await
+    }
+
+    pub(crate) async fn handle_set_next_track(&mut self, track_id: i32) -> ServerResult<Response> {
+        let track = self.db.get_track(track_id)?;
+        let event = MediaEvent::new(MediaResponseKind::Q, MediaEventKind::SetNextTrack(track));
+        self.mp_tx.send(event).await.unwrap();
+        self.listen_rx().await
     }
 }
 
@@ -87,10 +113,7 @@ mod test {
         assert_eq!(xs, vec![9, 11, 39, 41]);
 
         // collection fails the entire operation
-        let xs = vec![10, 40, 70]
-            .into_iter()
-            .map(f)
-            .collect::<Result<Vec<_>, _>>();
+        let xs = vec![10, 40, 70].into_iter().map(f).collect::<Result<Vec<_>, _>>();
         assert_eq!(xs, Err(()));
     }
 }

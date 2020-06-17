@@ -4,33 +4,38 @@ use std::sync::{mpsc::Receiver, Arc, Mutex};
 use vlc::{Event, EventType, VLCObject};
 
 #[derive(Debug)]
-pub(crate) enum MediaEvent {
+pub(crate) struct MediaEvent {
+    pub expected_response: MediaResponseKind,
+    pub kind: MediaEventKind,
+}
+
+impl MediaEvent {
+    pub fn new(expected_response: MediaResponseKind, kind: MediaEventKind) -> Self {
+        Self {
+            expected_response,
+            kind,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub(crate) enum MediaResponseKind {
+    /// no response expected
+    None,
+    Q,
+    PlaybackState,
+}
+
+#[derive(Debug)]
+pub(crate) enum MediaEventKind {
+    /// sending just for a response
+    None,
     Pause,
     Resume,
     TogglePlay,
+    PlayPrev,
     PlayNext,
-    PlaybackState,
     PlayTrack(JoinedTrack),
-}
-
-// vlc event handler
-pub(crate) struct MediaEventHandler {
-    mp_state: Arc<Mutex<MPState>>,
-    rx: Receiver<vlc::Event>,
-}
-
-impl MediaEventHandler {
-    // listens for vlc events and performs the appropriate modifications on mpstate
-    pub fn listen(&self) {
-        while let Ok(event) = self.rx.recv() {
-            let mpstate = self.mp_state.lock().unwrap();
-            match event {
-                vlc::Event::MediaPlayerEndReached => println!("recv event {:?}", event),
-                _ => {}
-            }
-        }
-    }
-    pub fn new(mp_state: Arc<Mutex<MPState>>, rx: Receiver<vlc::Event>) -> Self {
-        Self { mp_state, rx }
-    }
+    QAppend(JoinedTrack),
+    SetNextTrack(JoinedTrack),
 }

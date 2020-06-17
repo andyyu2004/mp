@@ -18,7 +18,7 @@ extern crate serde;
 use db::Database;
 use error::*;
 use media::MPState;
-use media::{MediaEventHandler, Player};
+use media::Player;
 
 use mp_protocol::{Request, FIN_BYTES};
 use server::Server;
@@ -34,23 +34,23 @@ use tokio::sync::mpsc;
 async fn main() -> ServerResult<()> {
     let (media_tx, media_rx) = mpsc::channel(1);
     let (server_tx, server_rx) = mpsc::channel(1);
-    let mpstate = Arc::new(tokio::sync::Mutex::new(MPState::default()));
-    let mut player = Player::new(media_tx.clone(), media_rx, server_tx, Arc::clone(&mpstate));
+    let mp_state = Arc::new(tokio::sync::Mutex::new(MPState::default()));
+    let mut player = Player::new(media_tx.clone(), media_rx, server_tx, Arc::clone(&mp_state));
 
     // as player is not Send due to vlc just communicate with it using mpsc
     // we execute the server on another thread as the player is not send
-    let server = Arc::new(tokio::sync::Mutex::new(Server::new(
-        media_tx, server_rx, mpstate,
-    )?));
-    std::thread::spawn(move || listen(server));
+    let server = Server::new(media_tx, server_rx, mp_state)?;
+    let server = Arc::new(tokio::sync::Mutex::new(server));
+    std::thread::spawn(move || client_listen(server));
 
     player.listen().await;
 
     Ok(())
 }
 
+/// listen for incoming clients
 #[tokio::main]
-async fn listen(server: Arc<tokio::sync::Mutex<Server>>) -> ServerResult<()> {
+async fn client_listen(server: Arc<tokio::sync::Mutex<Server>>) -> ServerResult<()> {
     let mut listener = UnixListener::bind("/tmp/mp-server")?;
     let mut incoming = listener.incoming();
     while let Some(client) = incoming.next().await {

@@ -1,4 +1,4 @@
-use crate::media::{MPState, MediaEvent, MediaPlayerData, Player};
+use crate::media::*;
 use crate::Database;
 use crate::ServerResult;
 use mp_protocol::{Request, Response, BUF_CAP};
@@ -35,12 +35,15 @@ impl Server {
             Request::AddFile(paths) => self.handle_add_files(&paths),
             Request::FetchTracks => self.handle_fetch_tracks(),
             Request::PlayTrack(track_id) => self.handle_play_track(track_id).await,
-            Request::QAppend(track_id) => self.handle_q_append(track_id),
+            Request::QAppend(track_id) => self.handle_q_append(track_id).await,
             Request::FetchPlaybackState => self.handle_fetch_playback_state().await,
             Request::PausePlayback => self.handle_pause_playback().await,
             Request::ResumePlayback => self.handle_resume_playback().await,
             Request::TogglePlay => self.handle_toggle_play().await,
-            Request::FetchQ => self.handle_fetch_q(),
+            Request::FetchQ => self.handle_fetch_q().await,
+            Request::SetNextTrack(track_id) => self.handle_set_next_track(track_id).await,
+            Request::PlayPrev => self.handle_play_prev().await,
+            Request::PlayNext => self.handle_play_next().await,
         };
 
         match res {

@@ -22,12 +22,23 @@ impl MPState {
         self.queue.push_back(track)
     }
 
-    pub fn play_next(&mut self) {
-        let played = self.queue.pop_front().unwrap();
-        self.history.push(played);
+    pub fn play_prev(&mut self) -> Option<&JoinedTrack> {
+        let last_played = self.history.pop()?;
+        self.queue.push_front(last_played);
+        self.queue.get(0)
     }
 
-    pub fn get(&self) -> (&Vec<JoinedTrack>, &VecDeque<JoinedTrack>) {
+    /// mutates the queue and history and returns the new track
+    pub fn play_next(&mut self) -> Option<&JoinedTrack> {
+        if self.queue.len() <= 1 {
+            return None;
+        }
+        let played = self.queue.pop_front()?;
+        self.history.push(played);
+        self.queue.get(0)
+    }
+
+    pub fn getq(&self) -> (&Vec<JoinedTrack>, &VecDeque<JoinedTrack>) {
         (&self.history, &self.queue)
     }
 }

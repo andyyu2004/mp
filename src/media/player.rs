@@ -1,4 +1,4 @@
-use super::{MPState, MediaEvent, MediaEventHandler, MediaResult};
+use super::*;
 use futures::executor::block_on;
 use mp_protocol::{JoinedTrack, PlaybackState};
 use std::sync::Arc;
@@ -10,6 +10,7 @@ use tokio::sync::Mutex;
 #[derive(Debug)]
 pub(crate) enum MediaPlayerData {
     PlaybackState(PlaybackState),
+    Q(Vec<JoinedTrack>, VecDeque<JoinedTrack>),
 }
 
 pub(crate) struct Player {
@@ -27,6 +28,7 @@ impl Player {
     pub fn new(
         media_tx: Sender<MediaEvent>,
         media_rx: Receiver<MediaEvent>,
+        // transmitter for sending back information to server
         server_tx: Sender<MediaPlayerData>,
         state: Arc<Mutex<MPState>>,
     ) -> Self {
@@ -47,52 +49,64 @@ impl Player {
 
     fn subscribe_vlc_events(tx: Sender<MediaEvent>, event_manager: &mut vlc::EventManager) {
         event_manager
-            .attach(vlc::EventType::MediaPlayerEndReached, move |event, _obj| {
-                block_on(tx.clone().send(MediaEvent::PlayNext)).unwrap();
+            .attach(vlc::EventType::MediaPlayerEndReached, move |_event, _obj| {
+                let event = MediaEvent::new(MediaResponseKind::None, MediaEventKind::PlayNext);
+                block_on(tx.clone().send(event)).unwrap();
             })
             .unwrap();
     }
 
     pub async fn listen(&mut self) {
         while let Some(event) = self.media_rx.recv().await {
-            match event {
-                MediaEvent::Pause => self.pause(),
-                MediaEvent::Resume => self.resume(),
-                MediaEvent::TogglePlay => self.toggle_play(),
-                MediaEvent::PlayNext => self.play_next(),
-                MediaEvent::PlaybackState => self.send_status().await,
-                MediaEvent::PlayTrack(track) => self.play_track(track).await,
+            match event.kind {
+                MediaEventKind::Pause => self.player.set_pause(true),
+                MediaEventKind::Resume => self.player.set_pause(false),
+                MediaEventKind::TogglePlay => self.player.pause(),
+                MediaEventKind::PlayNext => self.play_next().await,
+                MediaEventKind::PlayTrack(track) => self.play_immediate(track).await,
+                MediaEventKind::QAppend(track) => self.q_append(track).await,
+                MediaEventKind::PlayPrev => self.play_prev().await,
+                MediaEventKind::SetNextTrack(_) => {}
+                MediaEventKind::None => {}
+            };
+
+            match event.expected_response {
+                MediaResponseKind::None => {}
+                MediaResponseKind::PlaybackState => self.send_status().await,
+                MediaResponseKind::Q => self.send_q().await,
             };
         }
     }
 
     /// stops any other playback and immediately plays the specified track
-    pub async fn play_track(&mut self, track: JoinedTrack) {
-        let media = vlc::Media::new_path(&self.instance, &track.path).unwrap();
+    pub async fn play_immediate(&mut self, track: JoinedTrack) {
+        self.play_track(&track);
         self.state.lock().await.push_front(track);
+    }
+
+    pub fn play_track(&self, track: &JoinedTrack) {
+        let media = vlc::Media::new_path(&self.instance, &track.path).unwrap();
         self.player.set_media(&media);
         self.player.play().unwrap();
     }
 
-    fn pause(&mut self) {
-        self.player.set_pause(true)
+    async fn play_prev(&mut self) {
+        match self.player.get_time() {
+            Some(t) if t > 2000 => self.replay().await,
+            _ => {
+                let mut state = self.state.lock().await;
+                state.play_prev().map(|t| self.play_track(t));
+            }
+        };
     }
 
-    fn resume(&mut self) {
-        self.player.set_pause(false)
+    async fn replay(&mut self) {
+        self.player.set_time(0)
     }
 
-    fn toggle_play(&mut self) {
-        self.player.pause()
-    }
-
-    fn play_next(&self) {
-    }
-
-    async fn send_status(&mut self) {
-        let playback_state = self.get_status().await;
-        let data = MediaPlayerData::PlaybackState(playback_state);
-        self.server_tx.send(data).await.unwrap();
+    async fn play_next(&mut self) {
+        let mut state = self.state.lock().await;
+        state.play_next().map(|t| self.play_track(t));
     }
 
     async fn get_status(&self) -> PlaybackState {
@@ -104,10 +118,21 @@ impl Player {
         }
     }
 
-    /// appends the audio from provided path to queue
-    /// assumes the path is valid
-    pub async fn q_append(&self, track: JoinedTrack) {
+    async fn send_status(&mut self) {
+        let playback_state = self.get_status().await;
+        let data = MediaPlayerData::PlaybackState(playback_state);
+        self.server_tx.send(data).await.unwrap();
+    }
+
+    async fn send_q(&mut self) {
+        let state = self.state.lock().await;
+        let (q, hist) = state.getq();
+        let data = MediaPlayerData::Q(q.to_owned(), hist.to_owned());
+        self.server_tx.send(data).await.unwrap();
+    }
+
+    pub async fn q_append(&mut self, track: JoinedTrack) {
         let mut state = self.state.lock().await;
-        state.append(track)
+        state.append(track);
     }
 }
