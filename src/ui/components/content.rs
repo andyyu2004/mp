@@ -41,9 +41,10 @@ impl Render for Content<'_> {
             .block(Block::default().title("tracks").borders(Borders::ALL))
             .style(Style::default().fg(Color::White))
             .highlight_style(Style::default().modifier(Modifier::ITALIC))
+            .header_style(Style::default().modifier(Modifier::BOLD | Modifier::ITALIC))
             .widths(&[
                 Constraint::Length(5),
-                Constraint::Length(10),
+                Constraint::Length(15),
                 Constraint::Length(10),
                 Constraint::Length(20),
                 Constraint::Length(15),

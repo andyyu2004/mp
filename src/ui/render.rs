@@ -1,5 +1,5 @@
 use super::components::*;
-use super::{uistate::UIState, UI};
+use super::{uistate::UIState};
 use tui::backend::Backend;
 use tui::layout::*;
 use tui::widgets::*;

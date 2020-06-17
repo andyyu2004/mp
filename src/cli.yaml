@@ -3,6 +3,16 @@ subcommands:
     - play:
         about: resume playback or pass a track to play immediately
         args:
+            - next:
+                about: play next track on queue
+                long: next
+                short: n
+                takes_value: false
+            - prev:
+                about: play previous track on queue
+                long: prev
+                short: p
+                takes_value: false
             - TRACK:
                 about: set the track
                 required: false

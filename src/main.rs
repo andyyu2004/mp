@@ -25,8 +25,7 @@ async fn main() -> ClientResult<()> {
 
     let (tx, rx) = mpsc::channel();
     let client = Arc::new(Mutex::new(Client::new()));
-    let mut connection =
-        Connection::new("/tmp/mp-server", Arc::clone(&client), tx.clone(), rx).await?;
+    let mut connection = Connection::new("/tmp/mp-server", Arc::clone(&client), tx.clone(), rx).await?;
 
     if let Some(matches) = matches.subcommand_matches("add") {
         let files: Vec<&str> = matches.values_of("FILES").unwrap().collect();
@@ -34,12 +33,18 @@ async fn main() -> ClientResult<()> {
             .dispatch_add_files(files.into_iter().map(Path::new).collect())
             .await?;
     } else if let Some(matches) = matches.subcommand_matches("play") {
-        match matches.values_of("TRACK") {
-            Some(mut track) => {
-                let _track = track.next();
-                // do some fuzzy search or something on this input and play the closest match
+        if matches.is_present("next") {
+            connection.dispatch_play_next().await?;
+        } else if matches.is_present("prev") {
+            connection.dispatch_play_prev().await?;
+        } else {
+            match matches.values_of("TRACK") {
+                Some(mut track) => {
+                    let _track = track.next();
+                    // do some fuzzy search or something on this input and play the closest match
+                }
+                None => connection.dispatch_play().await?,
             }
-            None => connection.dispatch_play().await?,
         }
     } else if let Some(_) = matches.subcommand_matches("pause") {
         connection.dispatch_pause().await?;
@@ -50,6 +55,7 @@ async fn main() -> ClientResult<()> {
         let mut ui = UI::new(Arc::clone(&client), tx);
         ui.start()?;
         io_handle.join().unwrap();
+        // UI::start will close the connection so we shouldn't close it again
         return Ok(());
     }
 
