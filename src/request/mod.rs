@@ -9,12 +9,15 @@ pub enum Request<'r> {
     AddFile(Vec<&'r Path>),
     PlayTrack(i32),
     QAppend(i32),
+    SetNextTrack(i32),
     FetchTracks,
     FetchQ,
     FetchPlaybackState,
     ResumePlayback,
     PausePlayback,
     TogglePlay,
+    PlayPrev,
+    PlayNext,
 }
 
 /// implement decoding of a request from bytes of any encoding (encoding is encoded in the first byte of the buffer)
@@ -42,6 +45,9 @@ impl<'r> Encode for Request<'r> {
             Self::PausePlayback => encoder.encode_opcode(Opcode::PausePlayback),
             Self::TogglePlay => encoder.encode_opcode(Opcode::TogglePlay),
             Self::FetchQ => encoder.encode_opcode(Opcode::QFetch),
+            Self::SetNextTrack(track_id) => encoder.encode_f_track(Opcode::SetNxtTrk, *track_id),
+            Self::PlayPrev => encoder.encode_opcode(Opcode::PlayPrv),
+            Self::PlayNext => encoder.encode_opcode(Opcode::PlayNxt),
         }
     }
 }
@@ -52,16 +58,20 @@ impl<'r> Decode<'r> for Request<'r> {
         D: Decoder,
     {
         let opcode = decoder.decode_opcode(buf[0])?;
+        let buf = &buf[1..];
         Ok(match opcode {
-            Opcode::AddFile => Self::AddFile(decoder.decode_add_file(&buf[1..])?),
+            Opcode::AddFile => Self::AddFile(decoder.decode_add_file(&buf)?),
             Opcode::FetchTrk => Self::FetchTracks,
-            Opcode::PlayTrk => Self::PlayTrack(decoder.decode_i32(&buf[1..5].try_into().unwrap())?),
-            Opcode::QAppend => Self::QAppend(decoder.decode_i32(&buf[1..5].try_into().unwrap())?),
+            Opcode::PlayTrk => Self::PlayTrack(decoder.decode_i32(&buf)?),
+            Opcode::QAppend => Self::QAppend(decoder.decode_i32(&buf)?),
             Opcode::FetchPlaybackState => Self::FetchPlaybackState,
             Opcode::TogglePlay => Self::TogglePlay,
             Opcode::ResumePlayback => Self::ResumePlayback,
             Opcode::PausePlayback => Self::PausePlayback,
             Opcode::QFetch => Self::FetchQ,
+            Opcode::SetNxtTrk => Self::SetNextTrack(decoder.decode_i32(&buf)?),
+            Opcode::PlayPrv => Self::PlayPrev,
+            Opcode::PlayNxt => Self::PlayNext,
         })
     }
 }

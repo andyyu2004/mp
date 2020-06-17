@@ -15,6 +15,9 @@ pub enum Opcode {
     TogglePlay = 0x06,
     QAppend = 0x07,
     QFetch = 0x08,
+    SetNxtTrk = 0x09,
+    PlayPrv = 0x0A,
+    PlayNxt = 0x0B,
 }
 
 impl Opcode {

@@ -1,5 +1,6 @@
 use crate::*;
 use error::DeserializationError;
+use std::convert::TryInto;
 use std::path::Path;
 
 pub struct BinaryDecoder;
@@ -8,7 +9,6 @@ impl Decoder for BinaryDecoder {
     type Error = ProtocolError;
     fn decode_add_file<'a>(&mut self, buf: &'a [u8]) -> ProtocolResult<Vec<&'a Path>> {
         let paths = bincode::deserialize::<Vec<&Path>>(buf).map_err(|_| DeserializationError)?;
-        dbg!(&paths);
         Ok(paths)
     }
 
@@ -16,7 +16,8 @@ impl Decoder for BinaryDecoder {
         Opcode::from_u8(u)
     }
 
-    fn decode_i32(&mut self, buf: &[u8; 4]) -> Result<i32, Self::Error> {
-        Ok(i32::from_be_bytes(*buf))
+    fn decode_i32(&mut self, buf: &[u8]) -> Result<i32, Self::Error> {
+        let xs = buf[0..4].try_into().unwrap();
+        Ok(i32::from_be_bytes(xs))
     }
 }
