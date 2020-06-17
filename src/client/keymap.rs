@@ -7,11 +7,13 @@ use std::hash::Hash;
 lazy_static! {
     /// map from strings to the function
     pub(crate) static ref FMAP: HashMap<&'static str, Handler> = hashmap! {
-        "select_prev" => UI::handle_prev_track as Handler,
-        "select_next" => UI::handle_next_track,
+        "select_prev" => UI::handle_select_prev as Handler,
+        "select_next" => UI::handle_select_next,
         "play_track" => UI::handle_play_track,
         "toggle_play" => UI::handle_toggle_play,
         "queue_append" => UI::handle_queue_append,
+        "play_prev" => UI::handle_play_prev,
+        "play_next" => UI::handle_play_next,
     };
 }
 
@@ -35,7 +37,9 @@ impl Default for KeyMap {
             (Region::TrackList, Key::Char('k')) => "select_prev",
             (Region::TrackList, Key::Enter) => "play_track",
             (Region::TrackList, Key::Ctrl('d')) => "toggle_play",
-            (Region::TrackList, Key::Ctrl('a')) => "queue_append",
+            (Region::TrackList, Key::Ctrl('q')) => "queue_append",
+            (Region::TrackList, Key::Ctrl('f')) => "play_next",
+            (Region::TrackList, Key::Ctrl('s')) => "play_prev",
         };
         Self(map)
     }

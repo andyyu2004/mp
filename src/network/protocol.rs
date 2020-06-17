@@ -50,6 +50,18 @@ impl Connection {
         Ok(())
     }
 
+    pub async fn dispatch_play_prev(&mut self) -> ProtocolResult<()> {
+        self.dispatch(&Request::PlayPrev).await
+    }
+
+    pub async fn dispatch_play_next(&mut self) -> ProtocolResult<()> {
+        self.dispatch(&Request::PlayNext).await
+    }
+
+    pub async fn dispatch_set_next_track(&mut self, track_id: i32) -> ProtocolResult<()> {
+        self.dispatch(&Request::SetNextTrack(track_id)).await
+    }
+
     pub async fn dispatch_fetch_q(&mut self) -> ProtocolResult<()> {
         self.dispatch(&Request::FetchQ).await
     }

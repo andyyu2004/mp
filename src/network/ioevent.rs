@@ -4,7 +4,10 @@ pub(crate) enum IOEvent {
     InitClient,
     FetchQ,
     UpdatePlaybackStatus,
+    PlayPrev,
+    PlayNext,
     PlayTrack(i32),
     TogglePlay,
     QueueAppend(i32),
+    SetNextTrack(i32),
 }

@@ -1,15 +1,15 @@
 use super::Region;
-use tui::widgets::ListState;
+use tui::widgets::TableState;
 
 pub(crate) struct UIState {
-    pub track_list_state: ListState,
+    pub track_table_state: TableState,
     pub focused_region: Region,
 }
 
 impl Default for UIState {
     fn default() -> Self {
         Self {
-            track_list_state: ListState::default(),
+            track_table_state: TableState::default(),
             focused_region: Region::TrackList,
         }
     }

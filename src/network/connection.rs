@@ -44,6 +44,9 @@ impl Connection {
                     break;
                 }
                 IOEvent::FetchQ => Ok(self.dispatch_fetch_q().await?),
+                IOEvent::PlayPrev => Ok(self.dispatch_play_prev().await?),
+                IOEvent::PlayNext => Ok(self.dispatch_play_next().await?),
+                IOEvent::SetNextTrack(track_id) => Ok(self.dispatch_set_next_track(track_id).await?),
             }?;
         }
         Ok(())
