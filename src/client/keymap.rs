@@ -39,7 +39,6 @@ impl Default for KeyMap {
         Self(hashmap! {
             (Region::TrackList, Key::Char('j')) => "select_next",
             (Region::TrackList, Key::Char('k')) => "select_prev",
-            (Region::TrackList, Key::Enter) => "play_track",
             (Region::TrackList, Key::Ctrl('d')) => "toggle_play",
             (Region::TrackList, Key::Ctrl('q')) => "queue_append",
             (Region::TrackList, Key::Ctrl('f')) => "play_next",
@@ -48,6 +47,7 @@ impl Default for KeyMap {
             (Region::TrackList, Key::Ctrl('l')) => "seek_forward",
             (Region::TrackList, Key::Alt('s')) => "shuffle_all",
             (Region::TrackList, Key::Char(':')) => "enter_command",
+            (Region::TrackList, Key::Enter) => "play_track",
         })
     }
 }

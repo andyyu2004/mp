@@ -13,7 +13,7 @@ macro_rules! early_return_option {
 
 macro_rules! early_return_bool {
     ($b:expr) => {
-        if !$b {
+        if $b {
             return;
         }
     };
