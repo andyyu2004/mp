@@ -1,0 +1,5 @@
+[00:00:00.000] (7f6e7729c700) TRACE  registering with poller
+[00:00:00.007] (7f6e7729c700) TRACE  init_client
+[00:00:00.008] (7f6e75f96700) TRACE  registering with poller
+[00:00:00.008] (7f6e75f96700) TRACE  registering with poller
+[00:00:00.513] (7f6e7729c700) TRACE  deregistering handle with poller

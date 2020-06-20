@@ -1,7 +1,4 @@
-use super::MPState;
 use mp_protocol::JoinedTrack;
-use std::sync::{mpsc::Receiver, Arc, Mutex};
-use vlc::{Event, EventType, VLCObject};
 
 #[derive(Debug)]
 pub(crate) struct MediaEvent {
@@ -39,4 +36,5 @@ pub(crate) enum MediaEventKind {
     PlayTrack(JoinedTrack),
     QAppend(JoinedTrack),
     SetNextTrack(JoinedTrack),
+    Seek(i64),
 }

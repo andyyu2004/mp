@@ -96,6 +96,15 @@ impl Server {
         self.mp_tx.send(event).await.unwrap();
         self.listen_rx().await
     }
+
+    pub(crate) async fn handle_seek(&mut self, seek_amount: i64) -> ServerResult<Response> {
+        let event = MediaEvent::new(
+            MediaResponseKind::PlaybackState,
+            MediaEventKind::Seek(seek_amount),
+        );
+        self.mp_tx.send(event).await.unwrap();
+        self.listen_rx().await
+    }
 }
 
 #[cfg(test)]

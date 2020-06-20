@@ -3,7 +3,6 @@ use crate::{Database, ServerResult};
 use diesel::prelude::*;
 use diesel::OptionalExtension;
 use mp_protocol::JoinedTrack;
-use std::path::PathBuf;
 
 /// music player database
 pub trait Mpdb {}
@@ -16,10 +15,9 @@ impl Database {
         Ok(tracks
             .find(target_track_id)
             .inner_join(albums)
-            .inner_join(
-                artists.on(super::schema::artists::columns::artist_id
-                    .eq(super::schema::albums::columns::artist_id)),
-            )
+            .inner_join(artists.on(
+                super::schema::artists::columns::artist_id.eq(super::schema::albums::columns::artist_id),
+            ))
             .select((
                 track_id,
                 title,
@@ -73,11 +71,7 @@ impl Database {
 
     pub fn insert_files(&mut self, entries: Vec<InsertionEntry>) -> ServerResult<()> {
         for entry in entries {
-            let InsertionEntry {
-                artist,
-                album,
-                track,
-            } = entry;
+            let InsertionEntry { artist, album, track } = entry;
 
             let artist = self.get_or_insert_artist(artist)?;
             let album = self.get_or_insert_album(album, artist.artist_id)?;
@@ -95,9 +89,7 @@ impl Database {
     ) -> ServerResult<Track> {
         use super::schema::tracks::dsl::*;
         dbg!("inserting {}", &insertable_track.path);
-        let predicate = title
-            .eq(&insertable_track.title)
-            .and(album_id.eq(track_album_id));
+        let predicate = title.eq(&insertable_track.title).and(album_id.eq(track_album_id));
         let query = tracks.filter(predicate).limit(1);
         let track = query.get_result::<Track>(&self.connection).optional()?;
 

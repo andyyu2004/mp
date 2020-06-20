@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# dev script
+
 function cleanup() {
     rm -f /tmp/mp-server
 }

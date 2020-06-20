@@ -19,8 +19,8 @@ use db::Database;
 use error::*;
 use media::MPState;
 use media::Player;
-
 use mp_protocol::{Request, FIN_BYTES};
+use rayon::ThreadPoolBuilder;
 use server::Server;
 use std::convert::TryFrom;
 use std::io;
@@ -53,10 +53,11 @@ async fn main() -> ServerResult<()> {
 async fn client_listen(server: Arc<tokio::sync::Mutex<Server>>) -> ServerResult<()> {
     let mut listener = UnixListener::bind("/tmp/mp-server")?;
     let mut incoming = listener.incoming();
+    let pool = ThreadPoolBuilder::new().num_threads(3).build().unwrap();
     while let Some(client) = incoming.next().await {
         let client = client?;
         let server = Arc::clone(&server);
-        std::thread::spawn(|| handle_client(client, server));
+        pool.spawn(|| handle_client(client, server).unwrap());
     }
     Ok(())
 }

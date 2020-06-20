@@ -1,8 +1,8 @@
 use super::*;
 use futures::executor::block_on;
 use mp_protocol::{JoinedTrack, PlaybackState};
+use std::collections::VecDeque;
 use std::sync::Arc;
-use std::{collections::VecDeque, fs::File, io::BufReader, path::Path};
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::Mutex;
 
@@ -59,15 +59,16 @@ impl Player {
     pub async fn listen(&mut self) {
         while let Some(event) = self.media_rx.recv().await {
             match event.kind {
+                MediaEventKind::ShuffleAll(tracks) => self.shuffle_all(tracks).await,
+                MediaEventKind::SetNextTrack(_) => {}
+                MediaEventKind::PlayTrack(track) => self.play_immediate(track).await,
+                MediaEventKind::QAppend(track) => self.q_append(track).await,
+                MediaEventKind::Seek(seek_amt) => self.seek(seek_amt).await,
+                MediaEventKind::PlayPrev => self.play_prev().await,
                 MediaEventKind::Pause => self.player.set_pause(true),
                 MediaEventKind::Resume => self.player.set_pause(false),
                 MediaEventKind::TogglePlay => self.player.pause(),
                 MediaEventKind::PlayNext => self.play_next().await,
-                MediaEventKind::PlayTrack(track) => self.play_immediate(track).await,
-                MediaEventKind::QAppend(track) => self.q_append(track).await,
-                MediaEventKind::PlayPrev => self.play_prev().await,
-                MediaEventKind::ShuffleAll(tracks) => self.shuffle_all(tracks).await,
-                MediaEventKind::SetNextTrack(_) => {}
                 MediaEventKind::None => {}
             };
 
@@ -76,6 +77,12 @@ impl Player {
                 MediaResponseKind::PlaybackState => self.send_status().await,
                 MediaResponseKind::Q => self.send_q().await,
             };
+        }
+    }
+
+    pub async fn seek(&mut self, seek_amt: i64) {
+        if let Some(curr_time) = self.player.get_time() {
+            self.player.set_time(std::cmp::max(0, curr_time + seek_amt));
         }
     }
 
@@ -95,6 +102,9 @@ impl Player {
 
     pub fn play_track(&self, track: &JoinedTrack) {
         let media = vlc::Media::new_path(&self.instance, &track.path).unwrap();
+        // if some parameters are required
+        // let cstr = std::ffi::CString::new("vlc parameters".as_bytes()).unwrap();
+        // unsafe { vlc::sys::libvlc_media_add_option(media.raw(), cstr.as_ptr()); }
         self.player.set_media(&media);
         self.player.play().unwrap();
     }

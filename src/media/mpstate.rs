@@ -5,9 +5,6 @@ use std::collections::VecDeque;
 pub(crate) struct MPState {
     queue: VecDeque<JoinedTrack>,
     history: Vec<JoinedTrack>,
-    /// progress of the current track
-    progress: i64,
-    is_playing: bool,
 }
 
 impl MPState {
@@ -61,8 +58,6 @@ impl Default for MPState {
         Self {
             queue: VecDeque::default(),
             history: Vec::default(),
-            progress: i64::default(),
-            is_playing: bool::default(),
         }
     }
 }
