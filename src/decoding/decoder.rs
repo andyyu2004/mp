@@ -17,6 +17,10 @@ where
     fn decode_i32(&mut self, buf: &[u8]) -> Result<i32, Self::Error> {
         D::decode_i32(self, buf)
     }
+
+    fn decode_i64(&mut self, buf: &[u8]) -> Result<i64, Self::Error> {
+        D::decode_i64(self, buf)
+    }
 }
 
 pub trait Decoder {
@@ -24,4 +28,5 @@ pub trait Decoder {
     fn decode_add_file<'a>(&mut self, buf: &'a [u8]) -> Result<Vec<&'a Path>, Self::Error>;
     fn decode_opcode(&mut self, u: u8) -> Result<Opcode, Self::Error>;
     fn decode_i32(&mut self, buf: &[u8]) -> Result<i32, Self::Error>;
+    fn decode_i64(&mut self, buf: &[u8]) -> Result<i64, Self::Error>;
 }

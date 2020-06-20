@@ -19,6 +19,7 @@ pub enum Opcode {
     PlayPrv = 0x0A,
     PlayNxt = 0x0B,
     ShuffleAll = 0x0C,
+    Seek = 0x0D,
 }
 
 impl Opcode {

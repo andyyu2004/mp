@@ -20,4 +20,9 @@ impl Decoder for BinaryDecoder {
         let xs = buf[0..4].try_into().unwrap();
         Ok(i32::from_be_bytes(xs))
     }
+
+    fn decode_i64(&mut self, buf: &[u8]) -> Result<i64, Self::Error> {
+        let xs = buf[0..8].try_into().unwrap();
+        Ok(i64::from_be_bytes(xs))
+    }
 }

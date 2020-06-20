@@ -47,4 +47,10 @@ where
         self.writer.write(&track_id.to_be_bytes())?;
         Ok(())
     }
+
+    fn encode_seek(&mut self, seek_amount: i64) -> Result<Self::Ok, Self::Error> {
+        self.encode_opcode(Opcode::Seek)?;
+        self.writer.write(&i64::to_be_bytes(seek_amount))?;
+        Ok(())
+    }
 }
