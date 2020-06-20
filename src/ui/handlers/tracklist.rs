@@ -1,6 +1,8 @@
 use crate::{network::IOEvent, UI};
 
-macro_rules! early_return {
+pub const SEEK_MILLIS: i64 = 5000;
+
+macro_rules! early_return_option {
     ($option:expr) => {
         match $option {
             Some(x) => x,
@@ -9,7 +11,23 @@ macro_rules! early_return {
     };
 }
 
+macro_rules! early_return_bool {
+    ($b:expr) => {
+        if !$b {
+            return;
+        }
+    };
+}
+
 impl UI {
+    pub(crate) fn handle_seek_backward(&mut self) {
+        self.dispatch(IOEvent::Seek(-SEEK_MILLIS))
+    }
+
+    pub(crate) fn handle_seek_forward(&mut self) {
+        self.dispatch(IOEvent::Seek(SEEK_MILLIS))
+    }
+
     pub(crate) fn handle_play_prev(&mut self) {
         self.dispatch(IOEvent::PlayPrev)
     }
@@ -31,9 +49,7 @@ impl UI {
 
     fn handle_track_list_move(&mut self, f: impl FnOnce(Option<usize>, usize) -> usize) {
         let n = self.client.lock().unwrap().state.tracks.len();
-        if n == 0 {
-            return;
-        }
+        early_return_bool!(n == 0);
         let s = &mut self.uistate.track_table_state;
         let new_index = f(s.selected(), n);
         s.select(Some(new_index));
@@ -47,13 +63,13 @@ impl UI {
     }
 
     pub(crate) fn handle_queue_append(&mut self) {
-        let index = early_return!(self.uistate.track_table_state.selected());
+        let index = early_return_option!(self.uistate.track_table_state.selected());
         let track = &self.client.lock().unwrap().state.tracks[index];
         self.dispatch(IOEvent::QueueAppend(track.track_id));
     }
 
     pub(crate) fn handle_play_track(&mut self) {
-        let index = early_return!(self.uistate.track_table_state.selected());
+        let index = early_return_option!(self.uistate.track_table_state.selected());
         let track = &self.client.lock().unwrap().state.tracks[index];
         self.dispatch(IOEvent::PlayTrack(track.track_id));
     }

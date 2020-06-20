@@ -90,6 +90,10 @@ impl Connection {
         self.dispatch(&Request::QAppend(track_id)).await
     }
 
+    pub async fn dispatch_seek(&mut self, t: i64) -> ProtocolResult<()> {
+        self.dispatch(&Request::Seek(t)).await
+    }
+
     pub async fn dispatch_pause(&mut self) -> ProtocolResult<()> {
         self.dispatch(&Request::PausePlayback).await
     }

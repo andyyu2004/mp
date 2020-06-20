@@ -16,6 +16,8 @@ lazy_static! {
         "play_next" => UI::handle_play_next,
         "shuffle_all" => UI::handle_shuffle_all,
         "enter_command" => UI::handle_enter_command,
+        "seek_backward" => UI::handle_seek_backward,
+        "seek_forward" => UI::handle_seek_forward,
     };
 }
 
@@ -34,7 +36,7 @@ impl KeyMap {
 
 impl Default for KeyMap {
     fn default() -> Self {
-        let map = hashmap! {
+        Self(hashmap! {
             (Region::TrackList, Key::Char('j')) => "select_next",
             (Region::TrackList, Key::Char('k')) => "select_prev",
             (Region::TrackList, Key::Enter) => "play_track",
@@ -42,9 +44,10 @@ impl Default for KeyMap {
             (Region::TrackList, Key::Ctrl('q')) => "queue_append",
             (Region::TrackList, Key::Ctrl('f')) => "play_next",
             (Region::TrackList, Key::Ctrl('s')) => "play_prev",
+            (Region::TrackList, Key::Ctrl('h')) => "seek_backward",
+            (Region::TrackList, Key::Ctrl('l')) => "seek_forward",
             (Region::TrackList, Key::Alt('s')) => "shuffle_all",
-            (Region::TrackList, Key::Ctrl(':')) => "enter_command",
-        };
-        Self(map)
+            (Region::TrackList, Key::Char(':')) => "enter_command",
+        })
     }
 }

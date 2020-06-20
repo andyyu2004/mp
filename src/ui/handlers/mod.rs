@@ -1,3 +1,4 @@
+pub(crate) mod command;
 pub(crate) mod tracklist;
 
 use super::{Key, UI};
@@ -24,8 +25,5 @@ impl UI {
         };
 
         handler(self)
-    }
-
-    pub fn handle_enter_command(&mut self) {
     }
 }

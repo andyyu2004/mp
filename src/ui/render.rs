@@ -1,5 +1,5 @@
 use super::components::*;
-use super::{uistate::UIState};
+use super::uistate::UIState;
 use tui::backend::Backend;
 use tui::layout::*;
 use tui::widgets::*;
@@ -20,6 +20,7 @@ impl UIState {
             Constraint::Min(1),
             // play bar
             Constraint::Length(6),
+            // status bar
             Constraint::Length(2),
         ];
 
@@ -41,10 +42,7 @@ impl Render for UIState {
         f.render_widget(block, top_bar_rect);
 
         Main::new(self).render(f, main_rect, state);
-
         Playbar::new(self).render(f, playbar_rect, state);
-
-        let block = Block::default().title("status bar").borders(Borders::ALL);
-        f.render_widget(block, statusbar_rect);
+        StatusBar::new(self).render(f, statusbar_rect, state);
     }
 }

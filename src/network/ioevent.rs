@@ -8,6 +8,7 @@ pub(crate) enum IOEvent {
     PlayNext,
     TogglePlay,
     ShuffleAll,
+    Seek(i64),
     PlayTrack(i32),
     QueueAppend(i32),
     SetNextTrack(i32),
