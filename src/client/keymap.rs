@@ -15,12 +15,13 @@ lazy_static! {
         "play_prev" => UI::handle_play_prev,
         "play_next" => UI::handle_play_next,
         "shuffle_all" => UI::handle_shuffle_all,
-        "enter_command" => UI::handle_enter_command,
         "seek_backward" => UI::handle_seek_backward,
         "seek_forward" => UI::handle_seek_forward,
+        "set_next" => UI::handle_set_next,
     };
 }
 
+// pub(crate) type Handler = for<'r> fn(&'r mut UI);
 pub(crate) type Handler = for<'r> fn(&'r mut UI);
 pub(crate) struct KeyMap(HashMap<(Region, Key), &'static str>);
 
@@ -45,8 +46,8 @@ impl Default for KeyMap {
             (Region::TrackList, Key::Ctrl('s')) => "play_prev",
             (Region::TrackList, Key::Ctrl('h')) => "seek_backward",
             (Region::TrackList, Key::Ctrl('l')) => "seek_forward",
+            (Region::TrackList, Key::Ctrl('n')) => "set_next",
             (Region::TrackList, Key::Alt('s')) => "shuffle_all",
-            (Region::TrackList, Key::Char(':')) => "enter_command",
             (Region::TrackList, Key::Enter) => "play_track",
         })
     }

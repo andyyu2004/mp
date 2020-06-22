@@ -1,23 +1,6 @@
-use crate::{network::IOEvent, UI};
+use crate::{early_return_bool, early_return_option, network::IOEvent, UI};
 
 pub const SEEK_MILLIS: i64 = 5000;
-
-macro_rules! early_return_option {
-    ($option:expr) => {
-        match $option {
-            Some(x) => x,
-            None => return,
-        }
-    };
-}
-
-macro_rules! early_return_bool {
-    ($b:expr) => {
-        if $b {
-            return;
-        }
-    };
-}
 
 impl UI {
     pub(crate) fn handle_seek_backward(&mut self) {
@@ -30,6 +13,12 @@ impl UI {
 
     pub(crate) fn handle_play_prev(&mut self) {
         self.dispatch(IOEvent::PlayPrev)
+    }
+
+    pub(crate) fn handle_set_next(&mut self) {
+        let index = early_return_option!(self.uistate.track_table_state.selected());
+        let track = &self.client.lock().unwrap().state.tracks[index];
+        self.dispatch(IOEvent::SetNextTrack(track.track_id));
     }
 
     pub(crate) fn handle_shuffle_all(&mut self) {
@@ -48,7 +37,7 @@ impl UI {
     }
 
     fn handle_track_list_move(&mut self, f: impl FnOnce(Option<usize>, usize) -> usize) {
-        let n = self.client.lock().unwrap().state.tracks.len();
+        let n = self.uistate.filtered_tracklist_len;
         early_return_bool!(n == 0);
         let s = &mut self.uistate.track_table_state;
         let new_index = f(s.selected(), n);

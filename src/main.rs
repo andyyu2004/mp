@@ -1,5 +1,6 @@
 mod cli;
 mod client;
+mod cmd;
 mod error;
 mod network;
 mod ui;
@@ -25,7 +26,8 @@ async fn main() -> ClientResult<()> {
 
     let (tx, rx) = mpsc::channel();
     let client = Arc::new(Mutex::new(Client::new()));
-    let mut connection = Connection::new("/tmp/mp-server", Arc::clone(&client), tx.clone(), rx).await?;
+    let mut connection =
+        Connection::new("/tmp/mp-server", Arc::clone(&client), tx.clone(), rx).await?;
 
     if let Some(matches) = matches.subcommand_matches("add") {
         let files: Vec<&str> = matches.values_of("FILES").unwrap().collect();

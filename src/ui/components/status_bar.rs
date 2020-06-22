@@ -1,5 +1,5 @@
 use crate::ui::{Render, UIState};
-use tui::widgets::*;
+use tui::{layout::Alignment, widgets::*};
 
 pub(crate) struct StatusBar<'a> {
     uistate: &'a mut UIState,
@@ -20,7 +20,11 @@ impl Render for StatusBar<'_> {
     ) where
         B: tui::backend::Backend,
     {
-        let block = Block::default().title("").borders(Borders::ALL);
-        f.render_widget(block, rect);
+        let cmd = [Text::raw(&self.uistate.cmd)];
+        let paragraph = Paragraph::new(cmd.iter())
+            .alignment(Alignment::Left)
+            .block(Block::default().borders(Borders::ALL))
+            .wrap(true);
+        f.render_widget(paragraph, rect);
     }
 }

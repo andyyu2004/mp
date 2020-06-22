@@ -13,3 +13,23 @@ pub fn format_millis(millis: i64) -> String {
         format!("{}:{}", minutes, seconds_display)
     }
 }
+
+#[macro_export]
+macro_rules! early_return_option {
+    ($option:expr) => {
+        match $option {
+            Some(x) => x,
+            None => return,
+        }
+    };
+}
+
+/// returns unit if the expression evaluates to true
+#[macro_export]
+macro_rules! early_return_bool {
+    ($b:expr) => {
+        if $b {
+            return;
+        }
+    };
+}

@@ -21,7 +21,7 @@ impl UIState {
             // play bar
             Constraint::Length(6),
             // status bar
-            Constraint::Length(2),
+            Constraint::Length(3),
         ];
 
         Layout::default()

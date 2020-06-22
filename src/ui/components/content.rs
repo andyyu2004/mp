@@ -1,5 +1,5 @@
 use crate::ui::{render::Render, uistate::UIState};
-use crate::util;
+use crate::{cmd::Filter, util};
 use tui::style::{Color, Modifier, Style};
 use tui::{layout::Constraint, widgets::*};
 
@@ -14,16 +14,23 @@ impl<'a> Content<'a> {
 }
 
 impl Render for Content<'_> {
-    fn render<B>(&mut self, f: &mut tui::Frame<B>, rect: tui::layout::Rect, state: &crate::ClientState)
-    where
+    fn render<B>(
+        &mut self,
+        f: &mut tui::Frame<B>,
+        rect: tui::layout::Rect,
+        state: &crate::ClientState,
+    ) where
         B: tui::backend::Backend,
     {
         let items = state
             .tracks
             .iter()
+            .filter(|t| self.uistate.filter.apply(t))
             .map(|t| {
                 [
-                    t.track_number.map(|x| x.to_string()).unwrap_or("".to_owned()),
+                    t.track_number
+                        .map(|x| x.to_string())
+                        .unwrap_or("".to_owned()),
                     t.title.to_owned(),
                     t.artist_name.to_owned(),
                     t.album_title.to_owned(),
@@ -32,6 +39,8 @@ impl Render for Content<'_> {
                 ]
             })
             .collect::<Vec<_>>();
+
+        self.uistate.filtered_tracklist_len = items.len();
 
         let rows = items.iter().map(|row| Row::Data(row.iter()));
 

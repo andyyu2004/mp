@@ -11,6 +11,7 @@ edition = "2018"
 mp-protocol = { path = "../mp-protocol" }
 clap = {version = "3.0.0-beta.1", features = ["yaml"]}
 tokio = { version = "0.2", features = ["full"] }
+fuzzy-matcher = "*"
 tui = { version = "0.9", default-features = false, features = ["crossterm"] }
 log = "0.4.8"
 lazy_static = "1.4.0"

@@ -172,7 +172,6 @@ impl From<event::KeyEvent> for Key {
                 code: event::KeyCode::Char(c),
                 ..
             } => Key::Char(c),
-
             _ => Key::Unknown,
         }
     }

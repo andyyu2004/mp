@@ -50,6 +50,9 @@ impl UI {
             {
                 let client = self.client.lock().unwrap();
                 let uistate = &mut self.uistate;
+                if uistate.should_quit {
+                    break;
+                }
                 terminal.draw(|mut f| {
                     let size = f.size();
                     uistate.render(&mut f, size, &client.state);
@@ -57,14 +60,10 @@ impl UI {
             }
 
             match event_handler.recv()? {
-                InputEvent::Input(key) => {
-                    if key == Key::Ctrl('c') {
-                        break;
-                    }
-                    self.handle_keypress(key);
-                }
+                InputEvent::Input(Key::Ctrl('z')) => break,
+                InputEvent::Input(key) => self.handle_keypress(key),
                 InputEvent::Tick => self.tick(),
-            }
+            };
         }
 
         crossterm::terminal::disable_raw_mode().unwrap();
