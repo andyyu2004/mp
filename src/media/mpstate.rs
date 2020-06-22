@@ -20,6 +20,10 @@ impl MPState {
         self.queue.push_back(track)
     }
 
+    pub fn set_next_track(&mut self, track: JoinedTrack) {
+        self.queue.insert(1, track);
+    }
+
     /// shuffles the given vector and returns a reference of the first track to be played
     pub fn shuffle_all(&mut self, mut tracks: Vec<JoinedTrack>) -> Option<&JoinedTrack> {
         let mut rng = rand::thread_rng();

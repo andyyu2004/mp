@@ -1,4 +1,3 @@
-#![allow(unused_import)]
 #![allow(dead_code)]
 
 mod db;
@@ -23,8 +22,7 @@ use mp_protocol::{Request, FIN_BYTES};
 use rayon::ThreadPoolBuilder;
 use server::Server;
 use std::convert::TryFrom;
-use std::io;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{UnixListener, UnixStream};
 use tokio::stream::StreamExt;
@@ -57,13 +55,19 @@ async fn client_listen(server: Arc<tokio::sync::Mutex<Server>>) -> ServerResult<
     while let Some(client) = incoming.next().await {
         let client = client?;
         let server = Arc::clone(&server);
-        pool.spawn(|| handle_client(client, server).unwrap());
+        pool.spawn(|| handle_client(client, server));
     }
     Ok(())
 }
 
 #[tokio::main]
-async fn handle_client(
+async fn handle_client(client: UnixStream, server: Arc<tokio::sync::Mutex<Server>>) {
+    if let Err(err) = handle_client_result(client, server).await {
+        println!("{}", err);
+    }
+}
+
+async fn handle_client_result(
     mut client: UnixStream,
     server: Arc<tokio::sync::Mutex<Server>>,
 ) -> ServerResult<()> {

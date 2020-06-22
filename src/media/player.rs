@@ -60,10 +60,10 @@ impl Player {
         while let Some(event) = self.media_rx.recv().await {
             match event.kind {
                 MediaEventKind::ShuffleAll(tracks) => self.shuffle_all(tracks).await,
-                MediaEventKind::SetNextTrack(_) => {}
+                MediaEventKind::SetNextTrack(track) => self.set_next_track(track).await,
                 MediaEventKind::PlayTrack(track) => self.play_immediate(track).await,
                 MediaEventKind::QAppend(track) => self.q_append(track).await,
-                MediaEventKind::Seek(seek_amt) => self.seek(seek_amt).await,
+                MediaEventKind::Seek(seek_amt) => self.seek(seek_amt),
                 MediaEventKind::PlayPrev => self.play_prev().await,
                 MediaEventKind::Pause => self.player.set_pause(true),
                 MediaEventKind::Resume => self.player.set_pause(false),
@@ -80,7 +80,12 @@ impl Player {
         }
     }
 
-    pub async fn seek(&mut self, seek_amt: i64) {
+    pub async fn set_next_track(&mut self, track: JoinedTrack) {
+        let mut state = self.state.lock().await;
+        state.set_next_track(track);
+    }
+
+    pub fn seek(&mut self, seek_amt: i64) {
         if let Some(curr_time) = self.player.get_time() {
             self.player.set_time(std::cmp::max(0, curr_time + seek_amt));
         }
