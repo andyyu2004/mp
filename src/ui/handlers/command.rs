@@ -1,15 +1,22 @@
 use crate::cmd::{CmdMode, TrackFilter};
-use crate::ui::{Key, UI};
+use crate::{
+    early_return_bool, ui::{Key, UI}
+};
 
 impl UI {
     pub(crate) fn handle_status_bar_input(&mut self, key: Key) {
         match key {
-            Key::Char(c) => self.uistate.cmd.push(c),
+            Key::Char(c) => {
+                self.uistate.cmd.push(c);
+                if self.uistate.cmd_mode == CmdMode::Filter {
+                    self.set_filter()
+                }
+            }
             Key::Ctrl('c') => self.clear_command(),
             Key::Enter => match self.uistate.cmd_mode {
-                CmdMode::Filter => self.set_filter(),
                 CmdMode::Cmd => self.process_command(),
                 CmdMode::None => unreachable!(),
+                CmdMode::Filter => self.return_focus(),
             },
             Key::Backspace => {
                 // don't let the start character (:|/) get popped
@@ -21,15 +28,21 @@ impl UI {
         }
     }
 
-    pub(crate) fn clear_command(&mut self) {
-        self.uistate.cmd.clear();
+    fn return_focus(&mut self) {
         self.uistate.focused_regions.pop();
         self.uistate.cmd_mode = CmdMode::None;
     }
 
+    pub(crate) fn clear_command(&mut self) {
+        self.uistate.cmd.clear();
+        self.uistate.filter = TrackFilter::default();
+        self.return_focus();
+    }
+
     pub(crate) fn set_filter(&mut self) {
-        self.uistate.filter = TrackFilter::from(&self.uistate.cmd[1..]);
-        self.clear_command();
+        let filter_str = &self.uistate.cmd;
+        early_return_bool!(filter_str.len() < 3);
+        self.uistate.filter = TrackFilter::from(&filter_str[1..]);
     }
 
     pub(crate) fn process_command(&mut self) {
