@@ -1,4 +1,4 @@
-use crate::{early_return_bool, early_return_option, network::IOEvent, UI};
+use crate::{cmd::Filter, early_return_bool, early_return_option, network::IOEvent, UI};
 
 pub const SEEK_MILLIS: i64 = 5000;
 
@@ -15,10 +15,23 @@ impl UI {
         self.dispatch(IOEvent::PlayPrev)
     }
 
+    fn get_selected_track_id(&mut self) -> Option<i32> {
+        let index = self.uistate.track_table_state.selected()?;
+        let client = self.client.lock().unwrap();
+        let track_id = client
+            .state
+            .tracks
+            .iter()
+            .filter(|t| self.uistate.filter.apply(t))
+            .nth(index)
+            .unwrap()
+            .track_id;
+        Some(track_id)
+    }
+
     pub(crate) fn handle_set_next(&mut self) {
-        let index = early_return_option!(self.uistate.track_table_state.selected());
-        let track = &self.client.lock().unwrap().state.tracks[index];
-        self.dispatch(IOEvent::SetNextTrack(track.track_id));
+        let track_id = early_return_option!(self.get_selected_track_id());
+        self.dispatch(IOEvent::SetNextTrack(track_id));
     }
 
     pub(crate) fn handle_shuffle_all(&mut self) {
@@ -52,15 +65,13 @@ impl UI {
     }
 
     pub(crate) fn handle_queue_append(&mut self) {
-        let index = early_return_option!(self.uistate.track_table_state.selected());
-        let track = &self.client.lock().unwrap().state.tracks[index];
-        self.dispatch(IOEvent::QueueAppend(track.track_id));
+        let track_id = early_return_option!(self.get_selected_track_id());
+        self.dispatch(IOEvent::QueueAppend(track_id));
     }
 
     pub(crate) fn handle_play_track(&mut self) {
-        let index = early_return_option!(self.uistate.track_table_state.selected());
-        let track = &self.client.lock().unwrap().state.tracks[index];
-        self.dispatch(IOEvent::PlayTrack(track.track_id));
+        let track_id = early_return_option!(self.get_selected_track_id());
+        self.dispatch(IOEvent::PlayTrack(track_id));
     }
 
     pub(crate) fn handle_toggle_play(&mut self) {
