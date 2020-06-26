@@ -5,6 +5,7 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::Mutex;
+use vlc::MediaPlayerAudioEx;
 
 /// the data the player sends the server (i.e. playback state etc.)
 #[derive(Debug)]
@@ -34,6 +35,7 @@ impl Player {
     ) -> Self {
         let instance = vlc::Instance::new().unwrap();
         let player = vlc::MediaPlayer::new(&instance).unwrap();
+        player.set_volume(100).unwrap();
 
         Self::subscribe_vlc_events(media_tx.clone(), &mut player.event_manager());
 
@@ -49,10 +51,13 @@ impl Player {
 
     fn subscribe_vlc_events(tx: Sender<MediaEvent>, event_manager: &mut vlc::EventManager) {
         event_manager
-            .attach(vlc::EventType::MediaPlayerEndReached, move |_event, _obj| {
-                let event = MediaEvent::new(MediaResponseKind::None, MediaEventKind::PlayNext);
-                block_on(tx.clone().send(event)).unwrap();
-            })
+            .attach(
+                vlc::EventType::MediaPlayerEndReached,
+                move |_event, _obj| {
+                    let event = MediaEvent::new(MediaResponseKind::None, MediaEventKind::PlayNext);
+                    block_on(tx.clone().send(event)).unwrap();
+                },
+            )
             .unwrap();
     }
 
