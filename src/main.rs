@@ -52,6 +52,7 @@ async fn main() -> ClientResult<()> {
         connection.dispatch_pause().await?;
     } else {
         // if no arguments were provided, start the ui
+        #[cfg(debug_assertions)]
         simple_logging::log_to_file("log.log", LevelFilter::Trace)?;
         let io_handle = std::thread::spawn(move || io_main(connection));
         let mut ui = UI::new(Arc::clone(&client), tx);
