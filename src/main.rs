@@ -1,3 +1,5 @@
+#![feature(async_closure)]
+
 mod cli;
 mod client;
 mod cmd;
@@ -9,6 +11,7 @@ mod util;
 use client::*;
 use error::*;
 use log::LevelFilter;
+use mp_protocol::ProtocolResult;
 use network::Connection;
 use std::path::Path;
 use std::sync::{mpsc, Arc, Mutex};
@@ -31,9 +34,7 @@ async fn main() -> ClientResult<()> {
 
     if let Some(matches) = matches.subcommand_matches("add") {
         let files: Vec<&str> = matches.values_of("FILES").unwrap().collect();
-        connection
-            .dispatch_add_files(files.into_iter().map(Path::new).collect())
-            .await?;
+        connection.dispatch_add_files(files.into_iter().map(Path::new).collect()).await?;
     } else if let Some(matches) = matches.subcommand_matches("play") {
         if matches.is_present("next") {
             connection.dispatch_play_next().await?;
@@ -57,8 +58,8 @@ async fn main() -> ClientResult<()> {
         let io_handle = std::thread::spawn(move || io_main(connection));
         let mut ui = UI::new(Arc::clone(&client), tx);
         ui.start()?;
-        io_handle.join().unwrap();
-        // UI::start will close the connection so we shouldn't close it again
+        io_handle.join().unwrap()?;
+        // UI::start will close the connection on completion so we shouldn't close it again
         return Ok(());
     }
 
@@ -67,6 +68,6 @@ async fn main() -> ClientResult<()> {
 }
 
 #[tokio::main]
-async fn io_main(mut connection: Connection) {
-    connection.listen().await.unwrap();
+async fn io_main(mut connection: Connection) -> ProtocolResult<()> {
+    connection.listen().await
 }
