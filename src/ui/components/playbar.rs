@@ -16,8 +16,12 @@ impl<'a> Playbar<'a> {
 }
 
 impl Render for Playbar<'_> {
-    fn render<B>(&mut self, f: &mut tui::Frame<B>, rect: tui::layout::Rect, state: &crate::ClientState)
-    where
+    fn render<B>(
+        &mut self,
+        f: &mut tui::Frame<B>,
+        rect: tui::layout::Rect,
+        state: &crate::ClientState,
+    ) where
         B: tui::backend::Backend,
     {
         let layout = Layout::default()
@@ -25,11 +29,7 @@ impl Render for Playbar<'_> {
             .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
             .split(rect);
 
-        let PlaybackState {
-            progress,
-            is_playing,
-            curr_track,
-        } = &state.playback_state;
+        let PlaybackState { progress, is_playing, curr_track } = &state.playback_state;
 
         let (title_text, subtext, duration) = match curr_track {
             Some(t) => (
@@ -55,7 +55,7 @@ impl Render for Playbar<'_> {
         let progress_display = util::format_millis(*progress);
         let remaining_display = util::format_millis(duration - progress);
 
-        let playing_display = if *is_playing { ">>" } else { "||" };
+        let playing_display = if *is_playing { "||" } else { ">>" };
         let song_progress_label = format!(
             "{} {}/{} (-{})",
             playing_display, progress_display, duration_display, remaining_display
