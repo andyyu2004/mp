@@ -59,9 +59,6 @@ impl MPState {
 
 impl Default for MPState {
     fn default() -> Self {
-        Self {
-            queue: VecDeque::default(),
-            history: Vec::default(),
-        }
+        Self { queue: VecDeque::default(), history: Vec::default() }
     }
 }

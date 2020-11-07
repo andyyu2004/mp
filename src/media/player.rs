@@ -35,29 +35,18 @@ impl Player {
     ) -> Self {
         let instance = vlc::Instance::new().unwrap();
         let player = vlc::MediaPlayer::new(&instance).unwrap();
-        player.set_volume(100).unwrap();
 
         Self::subscribe_vlc_events(media_tx.clone(), &mut player.event_manager());
 
-        Self {
-            instance,
-            player,
-            media_rx,
-            media_tx,
-            server_tx,
-            state,
-        }
+        Self { instance, player, media_rx, media_tx, server_tx, state }
     }
 
     fn subscribe_vlc_events(tx: Sender<MediaEvent>, event_manager: &mut vlc::EventManager) {
         event_manager
-            .attach(
-                vlc::EventType::MediaPlayerEndReached,
-                move |_event, _obj| {
-                    let event = MediaEvent::new(MediaResponseKind::None, MediaEventKind::PlayNext);
-                    block_on(tx.clone().send(event)).unwrap();
-                },
-            )
+            .attach(vlc::EventType::MediaPlayerEndReached, move |_event, _obj| {
+                let event = MediaEvent::new(MediaResponseKind::None, MediaEventKind::PlayNext);
+                block_on(tx.clone().send(event)).unwrap();
+            })
             .unwrap();
     }
 
@@ -107,7 +96,9 @@ impl Player {
     /// stops any other playback and immediately plays the specified track
     pub async fn play_immediate(&mut self, track: JoinedTrack) {
         self.play_track(&track);
-        self.state.lock().await.push_front(track);
+        let mut state = self.state.lock().await;
+        state.set_next_track(track);
+        state.play_next().map(|track| self.play_track(track));
     }
 
     pub fn play_track(&self, track: &JoinedTrack) {
@@ -116,6 +107,7 @@ impl Player {
         // let cstr = std::ffi::CString::new("vlc parameters".as_bytes()).unwrap();
         // unsafe { vlc::sys::libvlc_media_add_option(media.raw(), cstr.as_ptr()); }
         self.player.set_media(&media);
+        self.player.set_volume(75).unwrap();
         self.player.play().unwrap();
     }
 

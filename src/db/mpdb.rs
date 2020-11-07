@@ -15,9 +15,10 @@ impl Database {
         Ok(tracks
             .find(target_track_id)
             .inner_join(albums)
-            .inner_join(artists.on(
-                super::schema::artists::columns::artist_id.eq(super::schema::albums::columns::artist_id),
-            ))
+            .inner_join(
+                artists.on(super::schema::artists::columns::artist_id
+                    .eq(super::schema::albums::columns::artist_id)),
+            )
             .select((
                 track_id,
                 title,
@@ -88,7 +89,7 @@ impl Database {
         track_album_id: i32,
     ) -> ServerResult<Track> {
         use super::schema::tracks::dsl::*;
-        dbg!("inserting {}", &insertable_track.path);
+        println!("inserting {}", &insertable_track.path);
         let predicate = title.eq(&insertable_track.title).and(album_id.eq(track_album_id));
         let query = tracks.filter(predicate).limit(1);
         let track = query.get_result::<Track>(&self.connection).optional()?;
@@ -97,9 +98,7 @@ impl Database {
             Some(track) => track,
             None => {
                 insertable_track.album_id = track_album_id;
-                diesel::insert_into(tracks)
-                    .values(&insertable_track)
-                    .execute(&self.connection)?;
+                diesel::insert_into(tracks).values(&insertable_track).execute(&self.connection)?;
                 query.get_result::<Track>(&self.connection)?
             }
         })
@@ -111,9 +110,8 @@ impl Database {
         album_artist_id: i32,
     ) -> ServerResult<Album> {
         use super::schema::albums::dsl::*;
-        let predicate = album_title
-            .eq(&insertable_album.album_title)
-            .and(artist_id.eq(album_artist_id));
+        let predicate =
+            album_title.eq(&insertable_album.album_title).and(artist_id.eq(album_artist_id));
         let query = albums.filter(predicate).limit(1);
         let album = query.get_result::<Album>(&self.connection).optional()?;
 
@@ -122,9 +120,7 @@ impl Database {
             None => {
                 // we must properly set the artist_id now that it is known
                 insertable_album.artist_id = album_artist_id;
-                diesel::insert_into(albums)
-                    .values(&insertable_album)
-                    .execute(&self.connection)?;
+                diesel::insert_into(albums).values(&insertable_album).execute(&self.connection)?;
                 query.get_result::<Album>(&self.connection)?
             }
         })
@@ -135,9 +131,7 @@ impl Database {
         insertable_artist: InsertableArtist,
     ) -> ServerResult<Artist> {
         use super::schema::artists::dsl::*;
-        let query = artists
-            .filter(artist_name.eq(&insertable_artist.artist_name))
-            .limit(1);
+        let query = artists.filter(artist_name.eq(&insertable_artist.artist_name)).limit(1);
 
         let artist = query.get_result::<Artist>(&self.connection).optional()?;
 
