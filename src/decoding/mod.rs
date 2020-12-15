@@ -9,7 +9,7 @@ pub use decoder::Decoder;
 
 pub fn get_decoder(encoding: Encoding) -> Box<dyn Decoder<Error = ProtocolError>> {
     match encoding {
-        Encoding::Binary => box BinaryDecoder,
+        Encoding::Binary => Box::new(BinaryDecoder),
         Encoding::Json => todo!(),
     }
 }
