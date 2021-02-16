@@ -1,3 +1,5 @@
+#![feature(box_syntax, box_patterns)]
+
 #[macro_use]
 extern crate diesel;
 
@@ -29,10 +31,7 @@ mod test {
 
     #[test]
     fn encode_decode_add_file() -> crate::ProtocolResult<()> {
-        let paths: Vec<&Path> = vec!["test/a", "test/b"]
-            .into_iter()
-            .map(Path::new)
-            .collect();
+        let paths: Vec<&Path> = vec!["test/a", "test/b"].into_iter().map(Path::new).collect();
         let mut buf = vec![];
         let req = Request::AddFile(paths.clone());
         binary_encode_to_bytes(&req, &mut buf)?;
@@ -40,19 +39,10 @@ mod test {
         let current_dir = std::env::current_dir()?;
         let absolute_paths: Vec<String> = paths
             .into_iter()
-            .map(|path| {
-                format!(
-                    "{}/{}",
-                    current_dir.to_str().unwrap(),
-                    path.to_str().unwrap()
-                )
-            })
+            .map(|path| format!("{}/{}", current_dir.to_str().unwrap(), path.to_str().unwrap()))
             .collect();
 
-        assert_eq!(
-            decoded,
-            Request::AddFile(absolute_paths.iter().map(Path::new).collect())
-        );
+        assert_eq!(decoded, Request::AddFile(absolute_paths.iter().map(Path::new).collect()));
 
         Ok(())
     }

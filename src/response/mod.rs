@@ -9,7 +9,7 @@ use std::collections::VecDeque;
 #[derive(Debug, Deserialize, Serialize)]
 pub enum Response {
     Tracks(Vec<JoinedTrack>),
-    Q(Vec<JoinedTrack>, VecDeque<JoinedTrack>),
+    Queue(Vec<JoinedTrack>, VecDeque<JoinedTrack>),
     PlaybackState(PlaybackState),
     Ok,
     Error,

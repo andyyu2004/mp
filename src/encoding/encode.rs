@@ -1,4 +1,4 @@
-use crate::{Encoder, Request};
+use crate::Encoder;
 
 /// a structure that can be encoded
 pub trait Encode {

@@ -7,7 +7,8 @@ pub struct BinaryDecoder;
 
 impl Decoder for BinaryDecoder {
     type Error = ProtocolError;
-    fn decode_add_file<'a>(&mut self, buf: &'a [u8]) -> ProtocolResult<Vec<&'a Path>> {
+
+    fn decode_paths<'a>(&mut self, buf: &'a [u8]) -> ProtocolResult<Vec<&'a Path>> {
         let paths = bincode::deserialize::<Vec<&Path>>(buf).map_err(|_| DeserializationError)?;
         Ok(paths)
     }

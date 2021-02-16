@@ -8,11 +8,13 @@ use std::path::Path;
 pub enum Request<'r> {
     AddFile(Vec<&'r Path>),
     PlayTrack(i32),
-    QAppend(i32),
+    QueueAppend(i32),
     SetNextTrack(i32),
+    Canonicalize(&'r Path, &'r Path),
+    ChangeVolume(i32),
     Seek(i64),
     FetchTracks,
-    FetchQ,
+    FetchQueue,
     FetchPlaybackState,
     ResumePlayback,
     PausePlayback,
@@ -22,9 +24,11 @@ pub enum Request<'r> {
     ShuffleAll,
 }
 
-/// implement decoding of a request from bytes of any encoding (encoding is encoded in the first byte of the buffer)
+/// implement decoding of a request from bytes of any encoding
+/// (encoding is encoded in the first byte of the buffer)
 impl<'r> TryFrom<&'r [u8]> for Request<'r> {
     type Error = ProtocolError;
+
     fn try_from(buf: &'r [u8]) -> ProtocolResult<Self> {
         let encoding = Encoding::from_u8(buf[0])?;
         let mut decoder = decoding::get_decoder(encoding);
@@ -38,20 +42,26 @@ impl<'r> Encode for Request<'r> {
         E: Encoder,
     {
         match self {
-            Self::AddFile(paths) => encoder.encode_add_file(paths),
-            Self::PlayTrack(track_id) => encoder.encode_f_track(Opcode::PlayTrk, *track_id),
-            Self::QAppend(track_id) => encoder.encode_f_track(Opcode::QAppend, *track_id),
-            Self::SetNextTrack(track_id) => encoder.encode_f_track(Opcode::SetNxtTrk, *track_id),
-            Self::Seek(t) => encoder.encode_seek(*t),
-            Self::FetchTracks => encoder.encode_opcode(Opcode::FetchTrk),
-            Self::FetchPlaybackState => encoder.encode_opcode(Opcode::FetchPlaybackState),
-            Self::ResumePlayback => encoder.encode_opcode(Opcode::ResumePlayback),
-            Self::PausePlayback => encoder.encode_opcode(Opcode::PausePlayback),
-            Self::TogglePlay => encoder.encode_opcode(Opcode::TogglePlay),
-            Self::FetchQ => encoder.encode_opcode(Opcode::QFetch),
-            Self::PlayPrev => encoder.encode_opcode(Opcode::PlayPrv),
-            Self::PlayNext => encoder.encode_opcode(Opcode::PlayNxt),
-            Self::ShuffleAll => encoder.encode_opcode(Opcode::ShuffleAll),
+            Request::AddFile(paths) => encoder.encode_op_files(Opcode::AddFile, paths),
+            Request::PlayTrack(track_id) => encoder.encode_op_i32(Opcode::PlayTrack, *track_id),
+            Request::QueueAppend(track_id) => encoder.encode_op_i32(Opcode::QueueAppend, *track_id),
+            Request::ChangeVolume(delta) => encoder.encode_op_i32(Opcode::ChangeVolume, *delta),
+            Request::SetNextTrack(track_id) =>
+                encoder.encode_op_i32(Opcode::SetNextTrack, *track_id),
+            Request::Seek(t) => encoder.encode_op_i64(Opcode::Seek, *t),
+            Request::FetchTracks => encoder.encode_opcode(Opcode::FetchTrack),
+            Request::FetchPlaybackState => encoder.encode_opcode(Opcode::FetchPlaybackState),
+            Request::ResumePlayback => encoder.encode_opcode(Opcode::ResumePlayback),
+            Request::PausePlayback => encoder.encode_opcode(Opcode::PausePlayback),
+            Request::TogglePlay => encoder.encode_opcode(Opcode::TogglePlay),
+            Request::FetchQueue => encoder.encode_opcode(Opcode::FetchQueue),
+            Request::PlayPrev => encoder.encode_opcode(Opcode::PlayPrev),
+            Request::PlayNext => encoder.encode_opcode(Opcode::PlayNext),
+            Request::ShuffleAll => encoder.encode_opcode(Opcode::ShuffleAll),
+            Request::Canonicalize(src, dst) => {
+                encoder.encode_path(src)?;
+                encoder.encode_path(dst)
+            }
         }
     }
 }
@@ -64,19 +74,20 @@ impl<'r> Decode<'r> for Request<'r> {
         let opcode = decoder.decode_opcode(buf[0])?;
         let buf = &buf[1..];
         Ok(match opcode {
-            Opcode::AddFile => Self::AddFile(decoder.decode_add_file(&buf)?),
-            Opcode::PlayTrk => Self::PlayTrack(decoder.decode_i32(&buf)?),
-            Opcode::QAppend => Self::QAppend(decoder.decode_i32(&buf)?),
-            Opcode::SetNxtTrk => Self::SetNextTrack(decoder.decode_i32(&buf)?),
+            Opcode::AddFile => Self::AddFile(decoder.decode_paths(&buf)?),
+            Opcode::PlayTrack => Self::PlayTrack(decoder.decode_i32(&buf)?),
+            Opcode::QueueAppend => Self::QueueAppend(decoder.decode_i32(&buf)?),
+            Opcode::SetNextTrack => Self::SetNextTrack(decoder.decode_i32(&buf)?),
             Opcode::Seek => Self::Seek(decoder.decode_i64(&buf)?),
-            Opcode::FetchTrk => Self::FetchTracks,
+            Opcode::ChangeVolume => Self::ChangeVolume(decoder.decode_i32(&buf)?),
+            Opcode::FetchTrack => Self::FetchTracks,
             Opcode::FetchPlaybackState => Self::FetchPlaybackState,
             Opcode::TogglePlay => Self::TogglePlay,
             Opcode::ResumePlayback => Self::ResumePlayback,
             Opcode::PausePlayback => Self::PausePlayback,
-            Opcode::QFetch => Self::FetchQ,
-            Opcode::PlayPrv => Self::PlayPrev,
-            Opcode::PlayNxt => Self::PlayNext,
+            Opcode::FetchQueue => Self::FetchQueue,
+            Opcode::PlayPrev => Self::PlayPrev,
+            Opcode::PlayNext => Self::PlayNext,
             Opcode::ShuffleAll => Self::ShuffleAll,
         })
     }
