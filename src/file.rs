@@ -1,10 +1,10 @@
-use crate::{db::InsertionEntry, error::ServerResult};
-use id3::Tag;
+use crate::db::InsertionEntry;
+use crate::error::ServerResult;
 use lazy_static::lazy_static;
 use maplit::hashset;
 use std::ffi::OsStr;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 lazy_static! {
     pub(crate) static ref ALLOWED_FILE_TYPES: std::collections::HashSet<&'static str> =
@@ -15,8 +15,8 @@ lazy_static! {
 pub(crate) fn get_all_tags(paths: &Vec<&Path>) -> ServerResult<Vec<InsertionEntry>> {
     let mut tags = vec![];
     for path in paths {
-        let t = get_tags(path)?;
-        tags.extend(t);
+        let ts = get_tags(path)?;
+        tags.extend(ts);
     }
     Ok(tags)
 }
@@ -37,7 +37,7 @@ fn get_tags(path: impl AsRef<Path>) -> ServerResult<Vec<InsertionEntry>> {
         if ext.is_none() || !ALLOWED_FILE_TYPES.contains(ext.unwrap()) {
             return Ok(vec![]);
         }
-        let tag = Tag::read_from_path(path)?;
+        let tag = id3::Tag::read_from_path(path)?;
         let file = taglib::File::new(path)?;
         let entry = InsertionEntry::from((path, &tag, file.audioproperties()?));
         Ok(vec![entry])

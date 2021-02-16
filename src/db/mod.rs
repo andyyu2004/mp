@@ -27,8 +27,12 @@ impl Database {
     pub fn establish_connection() -> SqliteConnection {
         dotenv().ok();
 
-        let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+        let database_url = std::env::var("DATABASE_URL").ok().unwrap_or_else(|| {
+            let mut path = dirs::home_dir().unwrap();
+            path.push(".config/mpserver/db.sqlite");
+            path.to_str().unwrap().to_owned()
+        });
         SqliteConnection::establish(&database_url)
-            .expect(&format!("Error connecting to {}", database_url))
+            .unwrap_or_else(|err| panic!("error connecting to {} {:?}", database_url, err))
     }
 }

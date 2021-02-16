@@ -4,21 +4,28 @@ version = "0.1.0"
 authors = ["andyyu <andyyu2004@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+mp-protocol = { path = "../mp-protocol" }
 # mp-protocol = { git = "ssh://git@gitlab.com/andyyu2004/mp-protocol.git" }
+ignore = "0.4.17"
 vlc-rs = "0.3.0"
+dbus = "0.9.0"
+libdbus-sys = "0.2.1"
+dbus-tokio = "0.6.0"
+dbus-tree = "0.9.0"
+dbus-crossroads = "0.3.0"
+glib = "0.7"
+mpris-player = "0.3.0"
 futures = "0.3.5"
 lazy_static = "1.4.0"
 maplit = "1"
-mp-protocol = { path = "../mp-protocol" }
 rayon = "1.1"
 diesel = { version = "1", features = ["sqlite"] }
 serde = { version = "1", features = ["derive"] }
+tokio = { version = "0.2", features = ["full", "uds"] }
 serde_json = "1.0"
 dotenv = "0.15.0"
 taglib = "1"
-tokio = { version = "0.2", features = ["full", "uds"] }
 id3 = "0.5.1"
 rand = "0.7.3"
+dirs = "3.0.1"

@@ -19,22 +19,30 @@ impl Server {
         Ok(Response::Tracks(self.db.get_all()?))
     }
 
-    pub(crate) async fn handle_fetch_q(&mut self) -> ServerResult<Response> {
+    pub(crate) async fn handle_canonicalize(
+        &mut self,
+        src: &Path,
+        dst: &Path,
+    ) -> ServerResult<Response> {
+        Ok(Response::Ok)
+    }
+
+    pub(crate) async fn handle_fetch_queue(&mut self) -> ServerResult<Response> {
         let state = self.mp_state.lock().await;
-        let (hist, q) = state.getq();
-        Ok(Response::Q(hist.to_vec(), q.to_owned()))
+        let (hist, q) = state.get_queue();
+        Ok(Response::Queue(hist.to_vec(), q.to_owned()))
     }
 
     pub(crate) async fn handle_play_track(&mut self, track_id: i32) -> ServerResult<Response> {
         let track = self.db.get_track(track_id)?;
-        let event = MediaEvent::new(MediaResponseKind::Q, MediaEventKind::PlayTrack(track));
+        let event = MediaEvent::new(MediaResponseKind::Queue, MediaEventKind::PlayTrack(track));
         self.mp_tx.send(event).await.unwrap();
         self.listen_rx().await
     }
 
-    pub(crate) async fn handle_q_append(&mut self, track_id: i32) -> ServerResult<Response> {
+    pub(crate) async fn handle_queue_append(&mut self, track_id: i32) -> ServerResult<Response> {
         let track = self.db.get_track(track_id)?;
-        let event = MediaEvent::new(MediaResponseKind::Q, MediaEventKind::QAppend(track));
+        let event = MediaEvent::new(MediaResponseKind::Queue, MediaEventKind::QueueAppend(track));
         self.mp_tx.send(event).await.unwrap();
         self.listen_rx().await
     }
@@ -42,7 +50,7 @@ impl Server {
     /// listens for a response from the player
     async fn listen_rx(&mut self) -> ServerResult<Response> {
         match self.server_rx.recv().await.unwrap() {
-            MediaPlayerData::Q(q, hist) => Ok(Response::Q(q, hist)),
+            MediaPlayerData::Queue(q, hist) => Ok(Response::Queue(q, hist)),
             MediaPlayerData::PlaybackState(state) => Ok(Response::PlaybackState(state)),
         }
     }
@@ -51,6 +59,12 @@ impl Server {
         let event = MediaEvent::new(MediaResponseKind::PlaybackState, MediaEventKind::None);
         self.mp_tx.send(event).await.unwrap();
         self.listen_rx().await
+    }
+
+    pub(crate) async fn handle_change_volume(&mut self, delta: i32) -> ServerResult<Response> {
+        let event = MediaEvent::new(MediaResponseKind::None, MediaEventKind::ChangeVolume(delta));
+        self.mp_tx.send(event).await.unwrap();
+        Ok(Response::Ok)
     }
 
     pub(crate) async fn handle_pause_playback(&mut self) -> ServerResult<Response> {
@@ -72,36 +86,34 @@ impl Server {
     }
 
     pub(crate) async fn handle_play_prev(&mut self) -> ServerResult<Response> {
-        let event = MediaEvent::new(MediaResponseKind::Q, MediaEventKind::PlayPrev);
+        let event = MediaEvent::new(MediaResponseKind::Queue, MediaEventKind::PlayPrev);
         self.mp_tx.send(event).await.unwrap();
         self.listen_rx().await
     }
 
     pub(crate) async fn handle_play_next(&mut self) -> ServerResult<Response> {
-        let event = MediaEvent::new(MediaResponseKind::Q, MediaEventKind::PlayNext);
+        let event = MediaEvent::new(MediaResponseKind::Queue, MediaEventKind::PlayNext);
         self.mp_tx.send(event).await.unwrap();
         self.listen_rx().await
     }
 
     pub(crate) async fn handle_shuffle_all(&mut self) -> ServerResult<Response> {
         let tracks = self.db.get_all()?;
-        let event = MediaEvent::new(MediaResponseKind::Q, MediaEventKind::ShuffleAll(tracks));
+        let event = MediaEvent::new(MediaResponseKind::Queue, MediaEventKind::ShuffleAll(tracks));
         self.mp_tx.send(event).await.unwrap();
         self.listen_rx().await
     }
 
     pub(crate) async fn handle_set_next_track(&mut self, track_id: i32) -> ServerResult<Response> {
         let track = self.db.get_track(track_id)?;
-        let event = MediaEvent::new(MediaResponseKind::Q, MediaEventKind::SetNextTrack(track));
+        let event = MediaEvent::new(MediaResponseKind::Queue, MediaEventKind::SetNextTrack(track));
         self.mp_tx.send(event).await.unwrap();
         self.listen_rx().await
     }
 
     pub(crate) async fn handle_seek(&mut self, seek_amount: i64) -> ServerResult<Response> {
-        let event = MediaEvent::new(
-            MediaResponseKind::PlaybackState,
-            MediaEventKind::Seek(seek_amount),
-        );
+        let event =
+            MediaEvent::new(MediaResponseKind::PlaybackState, MediaEventKind::Seek(seek_amount));
         self.mp_tx.send(event).await.unwrap();
         self.listen_rx().await
     }
@@ -113,11 +125,7 @@ mod test {
     #[test]
     fn result_flat_map() {
         fn f(x: i32) -> Result<Vec<i32>, ()> {
-            if x < 50 {
-                Ok(vec![x - 1, x + 1])
-            } else {
-                Err(())
-            }
+            if x < 50 { Ok(vec![x - 1, x + 1]) } else { Err(()) }
         }
 
         let xs: Vec<_> = vec![10, 40, 70].into_iter().flat_map(f).collect();

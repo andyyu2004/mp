@@ -8,10 +8,7 @@ pub(crate) struct MediaEvent {
 
 impl MediaEvent {
     pub fn new(expected_response: MediaResponseKind, kind: MediaEventKind) -> Self {
-        Self {
-            expected_response,
-            kind,
-        }
+        Self { expected_response, kind }
     }
 }
 
@@ -19,7 +16,7 @@ impl MediaEvent {
 pub(crate) enum MediaResponseKind {
     /// no response expected
     None,
-    Q,
+    Queue,
     PlaybackState,
 }
 
@@ -34,7 +31,8 @@ pub(crate) enum MediaEventKind {
     PlayNext,
     ShuffleAll(Vec<JoinedTrack>),
     PlayTrack(JoinedTrack),
-    QAppend(JoinedTrack),
+    QueueAppend(JoinedTrack),
     SetNextTrack(JoinedTrack),
+    ChangeVolume(i32),
     Seek(i64),
 }

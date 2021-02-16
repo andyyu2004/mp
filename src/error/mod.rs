@@ -6,10 +6,10 @@ pub(crate) type ServerResult<T> = Result<T, ServerError>;
 
 impl_from!(taglib::FileError, ServerError, FileError);
 impl_from!(id3::Error, ServerError, TagError);
-impl_from!(ProtocolError, ServerError, ProtocolError);
 impl_from!(std::io::Error, ServerError, IOError);
 impl_from!(diesel::result::Error, ServerError, DbError);
 impl_from!(Vec<ServerError>, ServerError, Errors);
+impl_from!(ProtocolError, ServerError, ProtocolError);
 impl_from!(MediaError, ServerError, MediaError);
 
 #[derive(Debug)]

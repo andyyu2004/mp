@@ -29,17 +29,17 @@ impl MPState {
         let mut rng = rand::thread_rng();
         tracks.shuffle(&mut rng);
         self.queue = VecDeque::from(tracks);
-        self.peek_q()
+        self.peek_queue()
     }
 
-    pub fn peek_q(&self) -> Option<&JoinedTrack> {
+    pub fn peek_queue(&self) -> Option<&JoinedTrack> {
         self.queue.get(0)
     }
 
     pub fn play_prev(&mut self) -> Option<&JoinedTrack> {
         let last_played = self.history.pop()?;
         self.queue.push_front(last_played);
-        self.peek_q()
+        self.peek_queue()
     }
 
     /// mutates the queue and history and returns the new track
@@ -49,16 +49,16 @@ impl MPState {
         }
         let played = self.queue.pop_front()?;
         self.history.push(played);
-        self.peek_q()
+        self.peek_queue()
     }
 
-    pub fn getq(&self) -> (&Vec<JoinedTrack>, &VecDeque<JoinedTrack>) {
+    pub fn get_queue(&self) -> (&Vec<JoinedTrack>, &VecDeque<JoinedTrack>) {
         (&self.history, &self.queue)
     }
 }
 
 impl Default for MPState {
     fn default() -> Self {
-        Self { queue: VecDeque::default(), history: Vec::default() }
+        Self { queue: Default::default(), history: Default::default() }
     }
 }

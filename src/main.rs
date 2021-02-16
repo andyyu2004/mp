@@ -1,8 +1,10 @@
 #![allow(dead_code)]
 
+mod commands;
 mod db;
 mod error;
 mod file;
+mod interface;
 mod media;
 mod mp_server;
 mod server;
@@ -46,10 +48,13 @@ async fn main() -> ServerResult<()> {
     Ok(())
 }
 
+const SOCKET_PATH: &str = "/tmp/mp-server";
+
 /// listen for incoming clients
 #[tokio::main]
 async fn client_listen(server: Arc<tokio::sync::Mutex<Server>>) -> ServerResult<()> {
-    let mut listener = UnixListener::bind("/tmp/mp-server")?;
+    let _ = std::fs::remove_dir(SOCKET_PATH);
+    let mut listener = UnixListener::bind(SOCKET_PATH)?;
     let mut incoming = listener.incoming();
     let pool = ThreadPoolBuilder::new().num_threads(3).build().unwrap();
     while let Some(client) = incoming.next().await {
@@ -75,9 +80,11 @@ async fn handle_client_result(
         let msg_len = client.read_u32().await? as usize;
         let mut buf = vec![0u8; msg_len];
         client.read_exact(&mut buf).await?;
+
         if msg_len == 4 && &buf[0..4] == FIN_BYTES {
             break;
         }
+
         let req = Request::try_from(&buf[..])?;
 
         let mut server = server.lock().await;

@@ -11,7 +11,7 @@ use vlc::MediaPlayerAudioEx;
 #[derive(Debug)]
 pub(crate) enum MediaPlayerData {
     PlaybackState(PlaybackState),
-    Q(Vec<JoinedTrack>, VecDeque<JoinedTrack>),
+    Queue(Vec<JoinedTrack>, VecDeque<JoinedTrack>),
 }
 
 pub(crate) struct Player {
@@ -56,8 +56,9 @@ impl Player {
                 MediaEventKind::ShuffleAll(tracks) => self.shuffle_all(tracks).await,
                 MediaEventKind::SetNextTrack(track) => self.set_next_track(track).await,
                 MediaEventKind::PlayTrack(track) => self.play_immediate(track).await,
-                MediaEventKind::QAppend(track) => self.q_append(track).await,
-                MediaEventKind::Seek(seek_amt) => self.seek(seek_amt),
+                MediaEventKind::QueueAppend(track) => self.queue_append(track).await,
+                MediaEventKind::Seek(delta) => self.seek(delta),
+                MediaEventKind::ChangeVolume(delta) => self.change_volume(delta),
                 MediaEventKind::PlayPrev => self.play_prev().await,
                 MediaEventKind::Pause => self.player.set_pause(true),
                 MediaEventKind::Resume => self.player.set_pause(false),
@@ -69,7 +70,7 @@ impl Player {
             match event.expected_response {
                 MediaResponseKind::None => {}
                 MediaResponseKind::PlaybackState => self.send_status().await,
-                MediaResponseKind::Q => self.send_q().await,
+                MediaResponseKind::Queue => self.send_q().await,
             };
         }
     }
@@ -77,6 +78,10 @@ impl Player {
     pub async fn set_next_track(&mut self, track: JoinedTrack) {
         let mut state = self.state.lock().await;
         state.set_next_track(track);
+    }
+
+    pub fn change_volume(&mut self, delta: i32) {
+        self.player.set_volume(self.player.get_volume() + delta).unwrap();
     }
 
     pub fn seek(&mut self, seek_amt: i64) {
@@ -136,6 +141,7 @@ impl Player {
             curr_track: state.curr_track().map(Clone::clone),
             progress: self.player.get_time().unwrap_or(0),
             is_playing: self.player.is_playing(),
+            volume: self.player.get_volume(),
         }
     }
 
@@ -147,12 +153,12 @@ impl Player {
 
     async fn send_q(&mut self) {
         let state = self.state.lock().await;
-        let (q, hist) = state.getq();
-        let data = MediaPlayerData::Q(q.to_owned(), hist.to_owned());
+        let (q, hist) = state.get_queue();
+        let data = MediaPlayerData::Queue(q.to_owned(), hist.to_owned());
         self.server_tx.send(data).await.unwrap();
     }
 
-    pub async fn q_append(&mut self, track: JoinedTrack) {
+    pub async fn queue_append(&mut self, track: JoinedTrack) {
         let mut state = self.state.lock().await;
         state.append(track);
     }

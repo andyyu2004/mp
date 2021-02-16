@@ -19,16 +19,10 @@ impl From<(&Path, &id3::Tag, taglib::AudioProperties<'_>)> for InsertionEntry {
         let album_title = tag.album().unwrap_or(UNKNOWN_ALBUM).to_owned();
         let artist_name = tag.artist().unwrap_or(UNKNOWN_ARTIST).to_owned();
         let genre = tag.genre().unwrap_or(UNKNOWN_GENRE).to_owned();
-        let lyrics = tag
-            .lyrics()
-            .next()
-            .map(|lyrics| lyrics.description.as_str())
-            .unwrap_or("")
-            .to_owned();
-        let comments: Vec<String> = tag
-            .comments()
-            .map(|c| c.description.as_str().to_owned())
-            .collect();
+        let lyrics =
+            tag.lyrics().next().map(|lyrics| lyrics.description.as_str()).unwrap_or("").to_owned();
+        let comments: Vec<String> =
+            tag.comments().map(|c| c.description.as_str().to_owned()).collect();
         let comments = comments.join(";");
         let track_number = tag.track().map(|i| i as i32);
         let year = tag.year().map(|i| i as i32);
@@ -44,12 +38,7 @@ impl From<(&Path, &id3::Tag, taglib::AudioProperties<'_>)> for InsertionEntry {
         let path = path.to_str().unwrap().to_owned();
 
         // make sure to set the artist_id properly later
-        let album = InsertableAlbum {
-            album_title,
-            artist_id: -1,
-            year,
-            total_tracks,
-        };
+        let album = InsertableAlbum { album_title, artist_id: -1, year, total_tracks };
 
         let track = InsertableTrack {
             title,
@@ -66,10 +55,6 @@ impl From<(&Path, &id3::Tag, taglib::AudioProperties<'_>)> for InsertionEntry {
             //pictures,
         };
 
-        Self {
-            artist,
-            album,
-            track,
-        }
+        Self { artist, album, track }
     }
 }
