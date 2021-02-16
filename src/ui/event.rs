@@ -19,14 +19,16 @@ impl EventHandler {
         let (tx, rx) = mpsc::channel();
         let event_tx = tx.clone();
         let duration = Duration::from_millis(TICK_RATE);
-        thread::spawn::<_, io::Result<()>>(move || loop {
-            if crossterm::event::poll(duration).unwrap() {
-                if let Event::Key(key_event) = crossterm::event::read().unwrap() {
-                    let key = Key::from(key_event);
-                    event_tx.send(InputEvent::Input(key)).unwrap();
+        thread::spawn::<_, io::Result<()>>(move || {
+            loop {
+                if crossterm::event::poll(duration).unwrap() {
+                    if let Event::Key(key_event) = crossterm::event::read().unwrap() {
+                        let key = Key::from(key_event);
+                        event_tx.send(InputEvent::Input(key)).unwrap();
+                    }
                 }
+                event_tx.send(InputEvent::Tick).unwrap();
             }
-            event_tx.send(InputEvent::Tick).unwrap();
         });
 
         Self { _tx: tx, rx }

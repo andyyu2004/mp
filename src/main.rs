@@ -51,6 +51,10 @@ async fn main() -> ClientResult<()> {
         }
     } else if let Some(_) = matches.subcommand_matches("pause") {
         connection.dispatch_pause().await?;
+    } else if let Some(matches) = matches.subcommand_matches("canonicalize") {
+        let src = matches.value_of("SRC").unwrap();
+        let dst = matches.value_of("dest").unwrap();
+        connection.dispatch_canonicalize(src, dst).await?;
     } else {
         // if no arguments were provided, start the ui
         #[cfg(debug_assertions)]

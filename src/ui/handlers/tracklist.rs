@@ -29,6 +29,14 @@ impl UI {
         Some(track_id)
     }
 
+    pub(crate) fn handle_volume_down(&mut self) {
+        self.dispatch(IOEvent::ChangeVolume(-1))
+    }
+
+    pub(crate) fn handle_volume_up(&mut self) {
+        self.dispatch(IOEvent::ChangeVolume(1))
+    }
+
     pub(crate) fn handle_set_next(&mut self) {
         let track_id = early_return_option!(self.get_selected_track_id());
         self.dispatch(IOEvent::SetNextTrack(track_id));

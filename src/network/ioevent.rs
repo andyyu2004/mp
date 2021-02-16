@@ -12,4 +12,5 @@ pub(crate) enum IOEvent {
     PlayTrack(i32),
     QueueAppend(i32),
     SetNextTrack(i32),
+    ChangeVolume(i32),
 }

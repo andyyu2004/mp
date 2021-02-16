@@ -1,17 +1,17 @@
 use crate::ui::{Render, UIState};
 use tui::{layout::Alignment, widgets::*};
 
-pub(crate) struct StatusBar<'a> {
+pub(crate) struct CommandBar<'a> {
     uistate: &'a mut UIState,
 }
 
-impl<'a> StatusBar<'a> {
+impl<'a> CommandBar<'a> {
     pub fn new(uistate: &'a mut UIState) -> Self {
         Self { uistate }
     }
 }
 
-impl Render for StatusBar<'_> {
+impl Render for CommandBar<'_> {
     fn render<B>(
         &mut self,
         f: &mut tui::Frame<B>,

@@ -4,20 +4,36 @@ use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::hash::Hash;
 
+const SELECT_PREV: &str = "select_prev";
+const SELECT_NEXT: &str = "select_next";
+const PLAY_TRACK: &str = "play_track";
+const TOGGLE_PLAY: &str = "toggle_play";
+const APPEND_TO_QUEUE: &str = "queue_append";
+const PLAY_NEXT: &str = "play_next";
+const PLAY_PREV: &str = "play_prev";
+const SEEK_BACKWARD: &str = "seek_backward";
+const SEEK_FORWARD: &str = "seek_forward";
+const SET_NEXT_TRACK: &str = "set_next";
+const SHUFFLE_ALL: &str = "shuffle_all";
+const VOLUME_DOWN: &str = "volume_down";
+const VOLUME_UP: &str = "volume_up";
+
 lazy_static! {
-    /// map from strings to the function
+    /// map from command names to the handler
     pub(crate) static ref FMAP: HashMap<&'static str, Handler> = hashmap! {
-        "select_prev" => UI::handle_select_prev as Handler,
-        "select_next" => UI::handle_select_next,
-        "play_track" => UI::handle_play_track,
-        "toggle_play" => UI::handle_toggle_play,
-        "queue_append" => UI::handle_queue_append,
-        "play_prev" => UI::handle_play_prev,
-        "play_next" => UI::handle_play_next,
-        "shuffle_all" => UI::handle_shuffle_all,
-        "seek_backward" => UI::handle_seek_backward,
-        "seek_forward" => UI::handle_seek_forward,
-        "set_next" => UI::handle_set_next,
+        SELECT_PREV => UI::handle_select_prev as Handler,
+        SELECT_NEXT=> UI::handle_select_next,
+        PLAY_TRACK => UI::handle_play_track,
+        TOGGLE_PLAY => UI::handle_toggle_play,
+        APPEND_TO_QUEUE => UI::handle_queue_append,
+        PLAY_PREV => UI::handle_play_prev,
+        PLAY_NEXT => UI::handle_play_next,
+        SHUFFLE_ALL => UI::handle_shuffle_all,
+        SEEK_BACKWARD => UI::handle_seek_backward,
+        SEEK_FORWARD => UI::handle_seek_forward,
+        SET_NEXT_TRACK => UI::handle_set_next,
+        VOLUME_DOWN => UI::handle_volume_down,
+        VOLUME_UP => UI::handle_volume_up,
     };
 }
 
@@ -38,17 +54,19 @@ impl KeyMap {
 impl Default for KeyMap {
     fn default() -> Self {
         Self(hashmap! {
-            (Region::TrackList, Key::Char('j')) => "select_next",
-            (Region::TrackList, Key::Char('k')) => "select_prev",
-            (Region::TrackList, Key::Ctrl('d')) => "toggle_play",
-            (Region::TrackList, Key::Ctrl('q')) => "queue_append",
-            (Region::TrackList, Key::Ctrl('f')) => "play_next",
-            (Region::TrackList, Key::Ctrl('s')) => "play_prev",
-            (Region::TrackList, Key::Ctrl('h')) => "seek_backward",
-            (Region::TrackList, Key::Ctrl('l')) => "seek_forward",
-            (Region::TrackList, Key::Ctrl('n')) => "set_next",
-            (Region::TrackList, Key::Alt('s')) => "shuffle_all",
-            (Region::TrackList, Key::Enter) => "play_track",
+            (Region::TrackList, Key::Char('j')) => SELECT_NEXT,
+            (Region::TrackList, Key::Char('k')) => SELECT_PREV,
+            (Region::TrackList, Key::Ctrl('d')) => TOGGLE_PLAY,
+            (Region::TrackList, Key::Ctrl('q')) => APPEND_TO_QUEUE,
+            (Region::TrackList, Key::Ctrl('f')) => PLAY_NEXT,
+            (Region::TrackList, Key::Ctrl('s')) => PLAY_PREV,
+            (Region::TrackList, Key::Ctrl('h')) => SEEK_BACKWARD,
+            (Region::TrackList, Key::Ctrl('l')) => SEEK_FORWARD,
+            (Region::TrackList, Key::Ctrl('n')) => SET_NEXT_TRACK,
+            (Region::TrackList, Key::Alt('s')) => SHUFFLE_ALL,
+            (Region::TrackList, Key::Alt('j')) => VOLUME_DOWN,
+            (Region::TrackList, Key::Alt('k')) => VOLUME_UP,
+            (Region::TrackList, Key::Enter) => PLAY_TRACK,
         })
     }
 }

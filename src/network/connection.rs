@@ -36,12 +36,12 @@ impl Connection {
                 IOEvent::PlayPrev => Ok(self.dispatch_play_prev().await?),
                 IOEvent::PlayNext => Ok(self.dispatch_play_next().await?),
                 IOEvent::ShuffleAll => Ok(self.dispatch_shuffle_all().await?),
-                IOEvent::SetNextTrack(track_id) => {
-                    Ok(self.dispatch_set_next_track(track_id).await?)
-                }
+                IOEvent::ChangeVolume(delta) => Ok(self.dispatch_change_volume(delta).await?),
                 IOEvent::PlayTrack(track_id) => Ok(self.dispatch_play_track(track_id).await?),
                 IOEvent::QueueAppend(track_id) => Ok(self.dispatch_queue_append(track_id).await?),
                 IOEvent::Seek(t) => Ok(self.dispatch_seek(t).await?),
+                IOEvent::SetNextTrack(track_id) =>
+                    Ok(self.dispatch_set_next_track(track_id).await?),
                 IOEvent::Terminate => {
                     self.close().await?;
                     break;

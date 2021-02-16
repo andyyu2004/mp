@@ -27,3 +27,15 @@ subcommands:
                 required: true
                 index: 1
                 multiple: true
+    - canonicalize:
+        about: canonicalize music directory 
+        args:
+            - SRC:
+                about: the directory to canonicalize
+                required: true
+                index: 1
+            - output:
+                about: the directory to copy the files to
+                required: true
+                long: output
+                short: o

@@ -35,7 +35,7 @@ impl Connection {
                 }
                 *s = playback_state;
             }
-            Response::Q(hist, q) => {
+            Response::Queue(hist, q) => {
                 client.state.queue = q;
                 client.state.history = hist;
             }
@@ -67,7 +67,7 @@ impl Connection {
     }
 
     pub async fn dispatch_fetch_q(&mut self) -> ProtocolResult<()> {
-        self.dispatch(&Request::FetchQ).await
+        self.dispatch(&Request::FetchQueue).await
     }
 
     pub async fn dispatch_fetch_playback_state(&mut self) -> ProtocolResult<()> {
@@ -82,12 +82,26 @@ impl Connection {
         self.dispatch(&Request::AddFile(files)).await
     }
 
+    pub async fn dispatch_change_volume(&mut self, delta: i32) -> ProtocolResult<()> {
+        self.dispatch(&Request::ChangeVolume(delta)).await
+    }
+
     pub async fn dispatch_play_track(&mut self, track_id: i32) -> ProtocolResult<()> {
         self.dispatch(&Request::PlayTrack(track_id)).await
     }
 
+    pub async fn dispatch_canonicalize(
+        &mut self,
+        src: impl AsRef<Path>,
+        dst: impl AsRef<Path>,
+    ) -> ProtocolResult<()> {
+        let src = src.as_ref().canonicalize()?;
+        let dst = dst.as_ref().canonicalize()?;
+        self.dispatch(&Request::Canonicalize(&src, &dst)).await
+    }
+
     pub async fn dispatch_queue_append(&mut self, track_id: i32) -> ProtocolResult<()> {
-        self.dispatch(&Request::QAppend(track_id)).await
+        self.dispatch(&Request::QueueAppend(track_id)).await
     }
 
     pub async fn dispatch_seek(&mut self, t: i64) -> ProtocolResult<()> {

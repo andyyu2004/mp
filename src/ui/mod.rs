@@ -1,15 +1,17 @@
+pub(crate) mod handlers;
+pub(crate) use key::Key;
+pub(crate) use region::Region;
+
 mod components;
 mod event;
-pub(crate) mod handlers;
 mod key;
 mod region;
 mod render;
 mod uistate;
 
-use crate::{network::IOEvent, Client, ClientResult};
+use crate::network::IOEvent;
+use crate::{Client, ClientResult};
 use event::{EventHandler, InputEvent};
-pub(crate) use key::Key;
-pub(crate) use region::Region;
 use render::Render;
 use std::sync::{mpsc::Sender, Arc, Mutex};
 use tui::backend::CrosstermBackend;
@@ -24,11 +26,7 @@ pub(crate) struct UI {
 
 impl UI {
     pub fn new(client: Arc<Mutex<Client>>, io_tx: Sender<IOEvent>) -> Self {
-        Self {
-            client,
-            uistate: UIState::default(),
-            io_tx,
-        }
+        Self { client, uistate: UIState::default(), io_tx }
     }
 
     fn dispatch(&self, event: IOEvent) {

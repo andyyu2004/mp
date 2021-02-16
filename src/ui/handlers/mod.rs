@@ -2,10 +2,9 @@ pub(crate) mod command;
 pub(crate) mod tracklist;
 
 use super::{Key, Region, UI};
+use crate::cmd::CmdMode;
 use crate::early_return_option;
-use crate::{
-    cmd::CmdMode, keymap::{self, Handler}
-};
+use crate::keymap::{self, Handler};
 
 pub(crate) trait KeyHandler {}
 
@@ -44,7 +43,7 @@ impl UI {
         match keymap::FMAP.get(fname) {
             Some(&f) => Some(f),
             None => {
-                warn!("unknown key combination {:?}", key);
+                warn!("unknown function {:?}", fname);
                 None
             }
         }

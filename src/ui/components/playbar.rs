@@ -29,7 +29,7 @@ impl Render for Playbar<'_> {
             .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
             .split(rect);
 
-        let PlaybackState { progress, is_playing, curr_track } = &state.playback_state;
+        let PlaybackState { progress, is_playing, volume, ref curr_track } = state.playback_state;
 
         let (title_text, subtext, duration) = match curr_track {
             Some(t) => (
@@ -52,13 +52,26 @@ impl Render for Playbar<'_> {
         f.render_widget(song_info, layout[0]);
 
         let duration_display = util::format_millis(duration);
-        let progress_display = util::format_millis(*progress);
+        let progress_display = util::format_millis(progress);
         let remaining_display = util::format_millis(duration - progress);
 
-        let playing_display = if *is_playing { "||" } else { ">>" };
+        let playing_display = if is_playing { "||" } else { ">>" };
+        let volume_icon = if volume < 30 {
+            '🔈'
+        } else if volume < 60 {
+            '🔉'
+        } else {
+            '🔊'
+        };
+
         let song_progress_label = format!(
-            "{} {}/{} (-{})",
-            playing_display, progress_display, duration_display, remaining_display
+            "{} {}/{} (-{}) {}{}",
+            playing_display,
+            progress_display,
+            duration_display,
+            remaining_display,
+            volume,
+            volume_icon,
         );
 
         let song_progress = Gauge::default()
@@ -71,6 +84,7 @@ impl Render for Playbar<'_> {
             )
             .percent(percentage as u16)
             .label(&song_progress_label);
+
         f.render_widget(song_progress, layout[1]);
     }
 }
