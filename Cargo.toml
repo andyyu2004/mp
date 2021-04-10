@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "mp-protocol",
+    "mp-server",
+    "mp-client"
+]
