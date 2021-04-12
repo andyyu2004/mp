@@ -6,14 +6,10 @@ edition = "2018"
 
 [dependencies]
 mp-protocol = { path = "../mp-protocol" }
-# mp-protocol = { git = "ssh://git@gitlab.com/andyyu2004/mp-protocol.git" }
+anyhow = "1"
 ignore = "0.4.17"
+zbus = "2.0.0-beta.3"
 vlc-rs = "0.3.0"
-dbus = "0.9.0"
-libdbus-sys = "0.2.1"
-dbus-tokio = "0.6.0"
-dbus-tree = "0.9.0"
-dbus-crossroads = "0.3.0"
 glib = "0.7"
 mpris-player = "0.3.0"
 futures = "0.3.5"

@@ -2,9 +2,9 @@
 
 mod commands;
 mod db;
+mod dbus_interface;
 mod error;
 mod file;
-mod interface;
 mod media;
 mod mp_server;
 mod server;
@@ -14,8 +14,6 @@ extern crate diesel;
 
 #[macro_use]
 extern crate serde;
-// mpris
-// mpris-listen
 use db::Database;
 use error::*;
 use media::MPState;
@@ -42,6 +40,7 @@ async fn main() -> ServerResult<()> {
     let server = Server::new(media_tx, server_rx, mp_state)?;
     let server = Arc::new(tokio::sync::Mutex::new(server));
     std::thread::spawn(move || client_listen(server));
+    std::thread::spawn(|| dbus_interface::connect().unwrap());
 
     player.listen().await;
 
@@ -93,5 +92,6 @@ async fn handle_client_result(
         client.write_u32(bytes.len() as u32).await?;
         client.write_all(&bytes).await?;
     }
+
     Ok(())
 }
