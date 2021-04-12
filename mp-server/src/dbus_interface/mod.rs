@@ -207,7 +207,6 @@ pub(crate) async fn connect(server: Arc<Mutex<Server>>) -> Result<(), anyhow::Er
     );
     assert!(object_server.at("/org/mpris/MediaPlayer2", MediaPlayer2PlayerInterface::new(server))?);
     loop {
-        println!("handling");
         if let Err(err) = object_server.try_handle_next() {
             eprintln!("object_server failed to handle request: {}", err);
         }
