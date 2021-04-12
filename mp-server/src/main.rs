@@ -39,8 +39,9 @@ async fn main() -> ServerResult<()> {
     // we execute the server on another thread as the player is not send
     let server = Server::new(media_tx, server_rx, mp_state)?;
     let server = Arc::new(tokio::sync::Mutex::new(server));
+    let server_clone = Arc::clone(&server);
     std::thread::spawn(move || client_listen(server));
-    std::thread::spawn(|| dbus_interface::connect().unwrap());
+    std::thread::spawn(|| dbus_interface::connect(server_clone).unwrap());
 
     player.listen().await;
 
