@@ -108,11 +108,7 @@ impl Player {
 
     pub fn play_track(&self, track: &JoinedTrack) {
         let media = vlc::Media::new_path(&self.instance, &track.path).unwrap();
-        // if some parameters are required
-        // let cstr = std::ffi::CString::new("vlc parameters".as_bytes()).unwrap();
-        // unsafe { vlc::sys::libvlc_media_add_option(media.raw(), cstr.as_ptr()); }
         self.player.set_media(&media);
-        self.player.set_volume(75).unwrap();
         self.player.play().unwrap();
     }
 
