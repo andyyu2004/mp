@@ -22,6 +22,7 @@ use mp_protocol::{Request, FIN_BYTES};
 use rayon::ThreadPoolBuilder;
 use server::Server;
 use std::convert::TryFrom;
+use std::path::Path;
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{UnixListener, UnixStream};
@@ -53,7 +54,9 @@ const SOCKET_PATH: &str = "/tmp/mp-server";
 /// listen for incoming clients
 #[tokio::main]
 async fn client_listen(server: Arc<tokio::sync::Mutex<Server>>) -> ServerResult<()> {
-    let _ = std::fs::remove_dir(SOCKET_PATH);
+    if Path::new(SOCKET_PATH).exists() {
+        std::fs::remove_file(SOCKET_PATH)?;
+    }
     let mut listener = UnixListener::bind(SOCKET_PATH)?;
     let mut incoming = listener.incoming();
     let pool = ThreadPoolBuilder::new().num_threads(3).build().unwrap();
