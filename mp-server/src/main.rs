@@ -14,12 +14,13 @@ extern crate diesel;
 
 #[macro_use]
 extern crate serde;
+
 use db::Database;
 use error::*;
+use futures::future::FutureExt;
 use media::MPState;
 use media::Player;
 use mp_protocol::{Request, FIN_BYTES};
-use rayon::ThreadPoolBuilder;
 use server::Server;
 use std::convert::TryFrom;
 use std::path::Path;
@@ -30,7 +31,7 @@ use tokio::stream::StreamExt;
 use tokio::sync::mpsc;
 
 #[tokio::main]
-async fn main() -> ServerResult<()> {
+async fn main() -> Result<(), anyhow::Error> {
     let (media_tx, media_rx) = mpsc::channel(1);
     let (server_tx, server_rx) = mpsc::channel(1);
     let mp_state = Arc::new(tokio::sync::Mutex::new(MPState::default()));
@@ -41,10 +42,16 @@ async fn main() -> ServerResult<()> {
     let server = Server::new(media_tx, server_rx, mp_state)?;
     let server = Arc::new(tokio::sync::Mutex::new(server));
     let server_clone = Arc::clone(&server);
-    std::thread::spawn(move || client_listen(server).unwrap());
-    std::thread::spawn(|| dbus_interface::connect(server_clone).unwrap());
+
+    let client_handle = tokio::spawn(client_listen(server)).fuse();
+    let interface_handle = tokio::spawn(dbus_interface::connect(server_clone)).fuse();
 
     player.listen().await;
+
+    tokio::select! {
+        handle = client_handle => handle.unwrap()?,
+        handle = interface_handle => handle.unwrap()?,
+    };
 
     Ok(())
 }
@@ -52,23 +59,20 @@ async fn main() -> ServerResult<()> {
 const SOCKET_PATH: &str = "/tmp/mp-server";
 
 /// listen for incoming clients
-#[tokio::main]
 async fn client_listen(server: Arc<tokio::sync::Mutex<Server>>) -> ServerResult<()> {
     if Path::new(SOCKET_PATH).exists() {
         std::fs::remove_file(SOCKET_PATH)?;
     }
     let mut listener = UnixListener::bind(SOCKET_PATH)?;
     let mut incoming = listener.incoming();
-    let pool = ThreadPoolBuilder::new().num_threads(3).build().unwrap();
     while let Some(client) = incoming.next().await {
         let client = client?;
         let server = Arc::clone(&server);
-        pool.spawn(|| handle_client(client, server));
+        tokio::spawn(handle_client(client, server));
     }
     Ok(())
 }
 
-#[tokio::main]
 async fn handle_client(client: UnixStream, server: Arc<tokio::sync::Mutex<Server>>) {
     if let Err(err) = handle_client_result(client, server).await {
         println!("{}", err);

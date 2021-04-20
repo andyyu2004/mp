@@ -195,7 +195,6 @@ impl MediaPlayer2PlayerInterface {
     }
 }
 
-#[tokio::main]
 pub(crate) async fn connect(server: Arc<Mutex<Server>>) -> Result<(), anyhow::Error> {
     let connection = Connection::new_session()?;
     fdo::DBusProxy::new(&connection)?

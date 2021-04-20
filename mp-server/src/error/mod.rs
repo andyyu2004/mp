@@ -1,6 +1,7 @@
 use crate::media::MediaError;
 use mp_protocol::{impl_from, util, ProtocolError};
 use std::fmt::{self, Display, Formatter};
+use thiserror::Error;
 
 pub(crate) type ServerResult<T> = Result<T, ServerError>;
 
@@ -12,7 +13,7 @@ impl_from!(Vec<ServerError>, ServerError, Errors);
 impl_from!(ProtocolError, ServerError, ProtocolError);
 impl_from!(MediaError, ServerError, MediaError);
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum ServerError {
     MediaError(MediaError),
     ProtocolError(ProtocolError),

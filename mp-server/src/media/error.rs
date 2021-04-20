@@ -1,6 +1,6 @@
-use mp_protocol::impl_from;
+use thiserror::Error;
 
 pub type MediaResult<T> = Result<T, MediaError>;
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum MediaError {}
